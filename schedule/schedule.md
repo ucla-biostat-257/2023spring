@@ -9,9 +9,10 @@ BIOSTAT 257 tentative schedule and handouts (expect frequent updates)
 
 Location and time: CHS 41-268A, Tuesday and Thursday @ 1pm-2:50pm.
 
-[Bruin Learn](https://bruinlearn.ucla.edu/courses/160238)
+BruinLearn: <https://bruinlearn.ucla.edu/courses/160238>
 
-Slack channel: <https://uclabiostat25-0hr8566.slack.com> [Invitation](https://join.slack.com/t/uclabiostat25-0hr8566/shared_invite/zt-1rcvhwe0m-3IYNRDkMMDO8s78FHRhNvQ)
+Slack channel: <https://uclabiostat25-0hr8566.slack.com>   
+Invitation link: <https://join.slack.com/t/uclabiostat25-0hr8566/shared_invite/zt-1rcvhwe0m-3IYNRDkMMDO8s78FHRhNvQ>
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/ucla-biostat-257/2023spring/master)
 
