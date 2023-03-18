@@ -1,0 +1,125 @@
+---
+title: Reproducible Research Using Jupyter Notebook
+subtitle: Biostat/Biomath M257
+author: Dr. Hua Zhou @ UCLA
+date: today
+format:
+  html:
+    theme: cosmo
+    embed-resources: true
+    number-sections: true
+    toc: true
+    toc-depth: 4
+    toc-location: left
+    code-fold: false
+jupyter:
+  jupytext:
+    formats: 'ipynb,qmd'
+    text_representation:
+      extension: .qmd
+      format_name: quarto
+      format_version: '1.0'
+      jupytext_version: 1.14.5
+  kernelspec:
+    display_name: Julia 1.8.5
+    language: julia
+    name: julia-1.8
+---
+
+# Reproducible Research Using Jupyter Notebook
+
+> An article about computational science in a scientific publication is **not** the scholarship itself, it is merely **advertising** of the scholarship. The actual scholarship is the complete software development environment and the complete set of instructions which generated the figures.
+> 
+> -- Buckheit and Donoho (1995)
+
+* For background and history of reproducible research in statistics/data science, see [lecture notes](https://ucla-biostat-203b.github.io/2022winter/slides/03-repres/repres.html) in 203B.
+
+* This course assumes familiarity with Git/GitHub and Jupyter Notebook. Your homework should be authored using Jupyter Notebook and submitted via Git/GitHub.
+
+    For an introduction to Git/GitHub, see [lecture notes](https://ucla-biostat-203b.github.io/2023winter/slides/04-git/git.html) in 203B.
+
+## Jupyter Notebook
+
+* IPython notebook (precursor of Jupyter notebook) is a powerful tool for authoring dynamic document in Python, which combines code, formatted text, math, and multimedia in a single document.  
+
+* [Jupyter](http://jupyter.org) is the current development that emcompasses multiple languages including **Ju**lia, **Pyt**hon, and **R**. 
+
+* Julia uses Jupyter notebook through the [IJulia.jl](https://github.com/JuliaLang/IJulia.jl) package.
+
+* In this course, you are required to write your homework reports using Jupyter Notebook.
+
+* For each homework, you need to submit your Jupyter Notebook (.e.g, `hw1.ipynb`), html (e.g., `hw1.html`), along with all code and data that are necessary to reproduce the results.
+
+* You can start with the Jupyter Notebook for the lectures.  
+
+### Installation
+
+Installing the IJulia.jl package will install a minimal Python/Jupyter distribution that is private to Julia.
+```julia
+using Pkg
+Pkg.add("IJulia")
+```
+We can also tell IJulia to use a Jupyter program already installed in our system:
+```julia
+ENV["JUPYTER"] = "path_to_jupyter_executable"
+Pkg.build("IJulia")
+```
+
+### Usage
+
+* We can invoke Jupyter notebook within Julia by
+```julia
+using IJulia
+notebook() # using home as working directory 
+```
+or, using current directory as the working directory, by
+```julia
+notebook(dir=pwd()) # using current directory as working directory 
+```
+
+* Notebook can be stopped by hitting `Ctrl+c` in Julia REPL.
+
+* Useful to know some keyboard shortcuts. I frequently use
+    * `shift + return`: execute current cell. 
+    * `b`: create a cell below current cell.
+    * `a`: create a cell above current cell.  
+    * `y`: change cell to code.  
+    * `m`: change cell to Markdown.  
+    Check more shortcuts in menu `Help` -> `Keyboard Shortcuts`.
+
+* **Notebook extensions** offer many utilities for productivity. They can be installed by
+```julia
+#Pkg.add("Conda")
+using Conda
+Conda.add_channel("conda-forge")
+Conda.add("jupyter_contrib_nbextensions")
+```
+
+* Notebook can be **converted to other formats** such as html, LaTeX, Markdown, Julia code, and many others, via menu `File` -> `Download as`. For your homework, please submit both notebook (ipynb) and html.
+
+* **Mathematical formula** can can be typeset as LaTeX in Markdown cells. For example, inline math: $e^{i \pi} + 1 = 0$ and displayed math
+$$
+    e^x = \sum_{i=0}^\infty \frac{1}{i!} x^i.
+$$
+For multiline displayed math:
+\begin{eqnarray*}
+    e^x &=& \sum_{i=0}^\infty \frac{1}{i!} x^i \\
+    &\approx& 1 + x + \frac{x^2}{2}.
+\end{eqnarray*}
+
+* If you have a lot of commonly used LaTeX macros, put them in a `.tex` file and load them using the notebook extension `Load TeX macros`. 
+
+## JupyterLab
+
+- JupyterLab (more IDE-like) is supposed to replace Jupyter Notebook after it reaches v1.0.
+
+- To invoke JupyterLab:
+```julia
+jupyterlab() # use home as working directory
+```
+or
+```julia
+jupyterlab(dir = pwd()) # use current directory as working directory
+```
+
+- To install extensions for JupyterLab, `Settings` -> `Enable Extension Manager (experimental)` then click the extension icon on the left to search, install, and uninstall extensions.
