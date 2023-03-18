@@ -1,0 +1,139 @@
+---
+title: Algorithms
+subtitle: Biostat/Biomath M257
+author: Dr. Hua Zhou @ UCLA
+date: today
+format:
+  html:
+    theme: cosmo
+    embed-resources: true
+    number-sections: true
+    toc: true
+    toc-depth: 4
+    toc-location: left
+    code-fold: false
+jupyter:
+  jupytext:
+    formats: 'ipynb,qmd'
+    text_representation:
+      extension: .qmd
+      format_name: quarto
+      format_version: '1.0'
+      jupytext_version: 1.14.5
+  kernelspec:
+    display_name: Julia 1.8.5
+    language: julia
+    name: julia-1.8
+---
+
+System information (for reproducibility):
+
+```{julia}
+versioninfo()
+```
+
+Load packages:
+
+```{julia}
+using Pkg
+
+Pkg.activate(pwd())
+Pkg.instantiate()
+Pkg.status()
+```
+
+## Definition
+
+* Algorithm is loosely defined as a set of instructions for doing something. Input $\to$ Output.
+
+* [Knuth](https://en.wikipedia.org/wiki/The_Art_of_Computer_Programming): (1) finiteness, (2) definiteness, (3) input, (4) output, (5) effectiveness.
+
+## Measure of efficiency
+
+* A basic unit for measuring algorithmic efficiency is **flop**.  
+
+> A flop (**floating point operation**) consists of a floating point addition, subtraction, multiplication, division, or comparison, and the usually accompanying fetch and store.  
+
+    Some books count multiplication followed by an addition (fused multiply-add, FMA) as one flop. This results a factor of up to 2 difference in flop counts.
+
+* How to measure efficiency of an algorithm? Big O notation. If $n$ is the size of a problem, an algorithm has order $O(f(n))$, where the leading term in the number of flops is $c \cdot f(n)$. For example,
+    - matrix-vector multiplication `A * b`, where `A` is $m \times n$ and `b` is $n \times 1$, takes $2mn$ or $O(mn)$ flops  
+    - matrix-matrix multiplication `A * B`, where `A` is $m \times n$ and `B` is $n \times p$, takes $2mnp$ or $O(mnp)$ flops
+
+* A hierarchy of computational complexity:  
+    Let $n$ be the problem size.
+    - Exponential order: $O(b^n)$ (NP-hard="horrible")    
+    - Polynomial order: $O(n^q)$ (doable)  
+    - $O(n \log n )$ (fast)  
+    - Linear order $O(n)$ (fast)  
+    - Log order $O(\log n)$ (super fast)  
+    
+* Classification of data sets by [Huber](http://link.springer.com/chapter/10.1007%2F978-3-642-52463-9_1).
+
+| Data Size | Bytes     | Storage Mode          |
+|-----------|-----------|-----------------------|
+| Tiny      | $10^2$    | Piece of paper        |
+| Small     | $10^4$    | A few pieces of paper |
+| Medium    | $10^6$ (megatbytes)    | A floppy disk         |
+| Large     | $10^8$    | Hard disk             |
+| Huge      | $10^9$ (gigabytes)   | Hard disk(s)          |
+| Massive   | $10^{12}$ (terabytes) | RAID storage          |
+
+* Difference of $O(n^2)$ and $O(n\log n)$ on massive data. Suppose we have a teraflop supercomputer capable of doing $10^{12}$ flops per second. For a problem of size $n=10^{12}$, $O(n \log n)$ algorithm takes about 
+$$10^{12} \log (10^{12}) / 10^{12} \approx 27 \text{ seconds}.$$ 
+$O(n^2)$ algorithm takes about $10^{12}$ seconds, which is approximately 31710 years!
+
+* QuickSort and FFT (invented by statistician John Tukey!) are celebrated algorithms that turn $O(n^2)$ operations into $O(n \log n)$. Another example is the Strassen's method, which turns $O(n^3)$ matrix multiplication into $O(n^{\log_2 7})$.
+
+* One goal of this course is to get familiar with the flop counts for some common numerical tasks in statistics.   
+
+> **The form of a mathematical expression and the way the expression should be evaluated in actual practice may be quite different.**
+
+* For example, compare flops of the two mathematically equivalent expressions: `(A * B) * x` and `A * (B * x)` where `A` and `B` are matrices and `x` is a vector.
+
+```{julia}
+using BenchmarkTools, Random
+
+Random.seed!(123) # seed
+n = 1000
+A = randn(n, n)
+B = randn(n, n)
+x = randn(n)
+
+# complexity is n^3 + n^2 = O(n^3)
+@benchmark ($A * $B) * $x
+```
+
+```{julia}
+# complexity is n^2 + n^2 = O(n^2)
+@benchmark $A * ($B * $x)
+```
+
+```{julia}
+# fortunately, this is parsed to the more efficient way
+@code_lowered A * B * x
+```
+
+## Performance of computer systems
+
+* **FLOPS** (floating point operations per second) is a measure of computer performance. 
+
+* For example, my laptop has the Intel i7-6920HQ (Skylake) CPU with 4 cores runing at 2.90 GHz (cycles per second).
+
+```{julia}
+versioninfo()
+```
+
+Intel Skylake CPUs can do 16 DP flops per cylce and 32 SP flops per cycle. Then the **theoretical throughput** of my laptop is
+$$ 4 \times 2.9 \times 10^9 \times 16 = 185.6 \text{ GFLOPS DP} $$
+in double precision and
+$$ 4 \times 2.9 \times 10^9 \times 32 = 371.2 \text{ GFLOPS SP} $$
+in single precision. 
+
+* In Julia, `LinearAlgebra.peakflops` computes the peak flop rate of the computer by using double precision `gemm!`
+
+```{julia}
+using LinearAlgebra
+
+LinearAlgebra.peakflops(2^14) # matrix size 2^14
+```
