@@ -1,0 +1,171 @@
+---
+title: GPU Computing in Julia
+subtitle: Biostat/Biomath M257
+author: Dr. Hua Zhou @ UCLA
+date: today
+format:
+  html:
+    theme: cosmo
+    embed-resources: true
+    number-sections: true
+    toc: true
+    toc-depth: 4
+    toc-location: left
+    code-fold: false
+jupyter:
+  jupytext:
+    formats: 'ipynb,qmd'
+    text_representation:
+      extension: .qmd
+      format_name: quarto
+      format_version: '1.0'
+      jupytext_version: 1.14.5
+  kernelspec:
+    display_name: Julia 1.8.5
+    language: julia
+    name: julia-1.8
+---
+
+This session introduces GPU computing in Julia.
+
+## GPGPU
+
+GPUs are ubiquitous in modern computers. Following are GPUs today's typical computer systems.
+
+| NVIDIA GPUs         | Tesla K80                            | GTX 1080                                 | GT 650M                              |
+|---------------------|----------------------------------------|-----------------------------------------|--------------------------------------|
+|                     | ![Tesla M2090](nvidia_k80.jpg) | ![GTX 580](nvidia_gtx1080.jpg)    | ![GT 650M](nvidia_gt650m.jpg) |
+| Computers           | servers, cluster                       | desktop                                 | laptop                               |
+|                     | ![Server](gpu_server.jpg)       | ![Desktop](alienware-area51.png) | ![Laptop](macpro_inside.png)  |
+| Main usage          | scientific computing                   | daily work, gaming                      | daily work                           |
+| Memory              | 24 GB                                    | 8 GB                                   | 1GB                                  |
+| Memory bandwidth    | 480 GB/sec                              | 320 GB/sec                               | 80GB/sec                             |
+| Number of cores     | 4992                                    | 2560                                     | 384                                  |
+| Processor clock     | 562 MHz                                 | 1.6 GHz                                  | 0.9GHz                               |
+| Peak DP performance | 2.91 TFLOPS                              | 257 GFLOPS                                        |                                      |
+| Peak SP performance | 8.73 TFLOPS                            | 8228 GFLOPS                              | 691Gflops                            |
+
+GPU architecture vs CPU architecture.  
+* GPUs contain 100s of processing cores on a single card; several cards can fit in a desktop PC  
+* Each core carries out the same operations in parallel on different input data -- single program, multiple data (SPMD) paradigm  
+* Extremely high arithmetic intensity *if* one can transfer the data onto and results off of the processors quickly
+
+| ![i7 die](cpu_i7_die.png) | ![Fermi die](Fermi_Die.png) |
+|----------------------------------|------------------------------------|
+| ![Einstein](einstein.png) | ![Rain man](rainman.png)    |
+
+## GPGPU in Julia
+
+GPU support by Julia is under active development. Check [JuliaGPU](https://github.com/JuliaGPU) for currently available packages. 
+
+There are multiple paradigms to program GPU in Julia, depending on the specific hardware.
+
+- **CUDA** is an ecosystem exclusively for Nvidia GPUs. There are extensive CUDA libraries for scientific computing: CuBLAS, CuRAND, CuSparse, CuSolve, CuDNN, ...
+
+  The [CUDA.jl](https://github.com/JuliaGPU/CUDA.jl) package allows defining arrays on Nvidia GPUs and overloads many common operations.
+
+- The [AMDGPU.jl](https://github.com/JuliaGPU/AMDGPU.jl) package allows defining arrays on AMD GPUs and overloads many common operations.
+
+- The [Metal.jl](https://github.com/JuliaGPU/Metal.jl) package allows defining arrays on Apple Silicon and overloads many common operations.
+
+- The [oneAPI.jl](https://github.com/JuliaGPU/oneAPI.jl) package allows defining arrays on Intel GPUs and overloads many common operations.
+
+I'll illustrate using Metal.jl on my MacBook Pro running MacOS Ventura 13.2.1. It has Apple M2 chip with ??? GPU cores.
+
+```{julia}
+versioninfo()
+```
+
+Load packages:
+
+```{julia}
+using Pkg
+
+Pkg.activate(pwd())
+Pkg.instantiate()
+Pkg.status()
+```
+
+## Query GPU devices in the system
+
+```{julia}
+using Metal
+
+Metal.versioninfo()
+```
+
+## Transfer data between main memory and GPU
+
+```{julia}
+# generate data on CPU
+x = rand(Float32, 3, 3)
+# transfer data form CPU to GPU
+xd = MtlArray(x)
+```
+
+```{julia}
+# generate array on GPU directly
+# yd = Metal.ones(3, 3)
+yd = MtlArray(ones(Float32, 3, 3))
+```
+
+```{julia}
+# collect data from GPU to CPU
+x = collect(xd)
+```
+
+## Linear algebra
+
+```{julia}
+using BenchmarkTools, LinearAlgebra
+
+n = 1024
+# on CPU
+x = rand(Float32, n, n)
+y = rand(Float32, n, n)
+z = zeros(Float32, n, n)
+# on GPU
+xd = MtlArray(x)
+yd = MtlArray(y)
+zd = MtlArray(z)
+
+# SP matrix multiplication on GPU
+@benchmark mul!($zd, $xd, $yd)
+```
+
+```{julia}
+# SP matrix multiplication on CPU
+@benchmark mul!($z, $x, $y)
+```
+
+We see ~10x speedup in this matrix multiplication example.
+
+```{julia}
+# cholesky on Gram matrix
+# This one doesn't seem to work on Apple M2 chip yet
+xtxd = xd'xd + I
+@benchmark cholesky($(Symmetric(xtxd)))
+```
+
+```{julia}
+xtx = collect(xtxd)
+@benchmark cholesky($(Symmetric(xtx)))
+```
+
+GPU speedup of Cholesky on this example is moderate.
+
+## Elementiwise operations on GPU
+
+```{julia}
+# elementwise function on GPU arrays
+fill!(yd, 1)
+@benchmark $zd .= log.($yd .+ sin.($xd))
+```
+
+```{julia}
+# elementwise function on CPU arrays
+x, y, z = collect(xd), collect(yd), collect(zd)
+@benchmark $z .= log.($y .+ sin.($x))
+```
+
+GPU brings great speedup (>500x) to the massive evaluation of elementary math functions.
