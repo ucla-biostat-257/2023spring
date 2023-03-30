@@ -26,6 +26,21 @@ jupyter:
     name: julia-1.8
 ---
 
+System information (for reproducibility):
+
+```{julia}
+versioninfo()
+```
+
+Load packages:
+
+```{julia}
+using Pkg
+Pkg.activate(pwd())
+Pkg.instantiate()
+Pkg.status()
+```
+
 ## Basic information
 
 * Tue/Thu 1pm-2:50pm @ CHS 41-268A   
@@ -57,23 +72,18 @@ BIOSTAT 203A (Data Management) in fall quarter focuses on programming in R and S
 ## Learning objectives
 
 1. Be highly appreciative of this quote by [James Gentle](https://www.google.com/books/edition/Computational_Statistics/mQ5KAAAAQBAJ?hl=en&gbpv=1&dq=inauthor:%22James+E.+Gentle%22)
-> The form of a mathematical expression and the way the expression should be evaluated in actual practice may be quite different.
 
-    Examples: $\mathbf{X}^T \mathbf{W} \mathbf{X}$, $\operatorname{tr} (\mathbf{A} \mathbf{B})$, $\operatorname{diag}(\mathbf{A} \mathbf{B})$, multivariate normal density,...  
+    > The form of a mathematical expression and the way the expression should be evaluated in actual practice may be quite different.
+
+    Examples: $\mathbf{X}^T \mathbf{W} \mathbf{X}$, $\operatorname{tr} (\mathbf{A} \mathbf{B})$, $\operatorname{diag} (\mathbf{A} \mathbf{B})$, multivariate normal density, ...  
 
 2. Become **memory-conscious**. You care about looping order. You do benchmarking on hot functions fanatically to make sure it's not allocating.    
-<img src="./memory.jpg" align="center" width="150"/>   
-
-    [Image source](https://www.independent.co.uk/news/health/memory-loss-alzheimers-disease-age-of-8-university-college-london-a9178631.html)
 
 3. **No inversion mentality**. Whenever you see a matrix inverse in mathematical expression, your brain reacts with *matrix decomposition*, *iterative solvers*, etc. For R users, that means you almost never use the `solve(M)` function to obtain inverse of a matrix $\boldsymbol{M}$.   
 
     Examples: $(\mathbf{X}^T \mathbf{X})^{-1} \mathbf{X}^T \mathbf{y}$, $\mathbf{y}^T \boldsymbol{\Sigma}^{-1} \mathbf{y}$, Newton-Raphson algorithm, ...   
-<img src="./yoga_inversion.jpg" align="center" width="250"/>   
 
-    [Image source](https://www.yogajournal.com/practice/inversion-inquiry)
-
-4. Know some basic strategies to solve **big data** problems. 
+4. Master some basic strategies to solve **big data** problems. 
 
     Examples: how Google solve the PageRank problem with $10^{9}$ webpages, linear regression with $10^7$ observations, etc.  
 
@@ -97,7 +107,7 @@ All course materials are in GitHub repo <https://github.com/ucla-biostat-257/202
 
 ### Run Jupyter Notebook in Binder
 
-A quick and easy way to run the Jupyter Notebooks is Binder, a free service that allows us to run Jupyter Notebooks in cloud. Simply follow the Binder link at <https://ucla-biostat-257.github.io/2023spring/schedule/schedule.html>. 
+A quick and easy way to run the Jupyter Notebooks is Binder, a free service that allows us to run Jupyter Notebooks in cloud. Simply follow the Binder link at the [schedule](https://ucla-biostat-257.github.io/2023spring/schedule/schedule.html) page. 
 
 If you want the JupyterLab interface, replace the `tree` by `lab` in the URL.  
 
@@ -105,26 +115,25 @@ If you want the JupyterLab interface, replace the `tree` by `lab` in the URL.
 
 1. Download and install Julia v1.8.x from <https://julialang.org/downloads/>. On Mac, use Bash command   
 ```bash  
-sudo ln -s /Applications/Julia-1.7.app/Contents/Resources/julia/bin/julia /usr/local/bin/julia
+sudo ln -s /Applications/Julia-1.8.app/Contents/Resources/julia/bin/julia /usr/local/bin/julia
 ```
 to create a symbolic link so `julia` command is available anywhere in the terminal. 
 
-2. Git clone the course material.   
+2. Install `IJulia` package. Open Julia REPL, type `]` to enter the package mode, then type
+```julia
+add IJulia
+build IJulia
+```
+
+3. Git clone the course material.   
 ```bash
 git clone https://github.com/ucla-biostat-257/2023spring.git biostat-257-2023spring
 ```
 You can change `biostat-257-2023spring` to any other directory name you prefer.
 
-3. Enter the folder `biostat-257-2022spring` on Terminal. 
+4. On terminal, enter the folder for the ipynb file you want to run, e.g. `biostat-257-2023spring/slides/01-intro/`. 
 
-4. Open Julia within that folder, type `]` to enter the package mode, then type  
-```julia  
-activate .
-instantiate
-```
-to install necessary packages. 
-
-5. In Julia REPL, type  
+5. Open Julia REPL, type  
 ```julia  
 using IJulia
 jupyterlab(dir = pwd())
@@ -136,4 +145,91 @@ notebook(dir = pwd())
 ```
 to open a Jupyter notebook.
 
-6. Course material is updated frequently. Remember to `git pull` to obtain the most recent material. 
+6. Course material is updated frequently. Remember to `git pull` to obtain the most recent material.
+
+## In class dicussion
+
+The logistic regression is typically estimated by the Fisher scoring algorithm, or iteratively reweighted least squares (IWLS), which iterates according to
+$$
+\boldsymbol{\beta}^{(t)} = (\mathbf{X}^T \mathbf{W}^{(t)} \mathbf{X})^{-1} \mathbf{X}^T \mathbf{W}^{(t)} \mathbf{z}^{(t)},
+$$
+where $\mathbf{z}^{(t)}$ are pseudo-responses and $\mathbf{W}^{(t)}$ is a diagonal matrix with nonnegative weights on the diagonal. Superscript $t$ is the iterate number.
+
+Question: How much speedup we can achieve, by careful consideration of flops and memory usage, over the naive implementation?
+```julia
+inv(X' * diagm(w) * X) * X' * diagm(w) * z
+```
+
+### Experiment
+
+First generate some data.
+
+```{julia}
+using LinearAlgebra, Random
+
+# Random seed for reproducibility
+Random.seed!(257)
+# samples, features
+n, p = 5000, 100
+# design matrix
+X = [ones(n) randn(n, p - 1)]
+# pseudo-responses
+z = randn(n)
+# weights
+w = 0.25 * rand(n);
+```
+
+### Method 1
+
+```{julia}
+# method 1 
+res1 = inv(X' * diagm(w) * X) * X' * diagm(w) * z
+```
+
+```{julia}
+using BenchmarkTools
+
+bm1 = @benchmark ((inv($X' * diagm($w) * $X) * $X') * diagm($w)) * $z
+bm1
+```
+
+### Method 2
+
+```{julia}
+# preallocation
+XtWt = similar(transpose(X))
+XtX = Matrix{Float64}(undef, p, p)
+Xtz = Vector{Float64}(undef, p)
+
+function myfun(X, z, w, XtWt, XtX, Xtz)
+    # XtWt = X' * W
+    mul!(XtWt, transpose(X), Diagonal(w))
+    # XtX = X' * W * X
+    mul!(XtX, XtWt, X)
+    # Xtz = X' * W * z
+    mul!(Xtz, XtWt, z)
+    # Cholesky on XtX
+    LAPACK.potrf!('U', XtX)
+    # Two triangular solves to solve (XtX) \ (Xtz)
+    BLAS.trsv!('U', 'T', 'N', XtX, Xtz)
+    BLAS.trsv!('U', 'N', 'N', XtX, Xtz)
+end
+
+res2 = myfun(X, z, w, XtWt, XtX, Xtz)
+```
+
+```{julia}
+bm2 = @benchmark myfun($X, $z, $w, $XtWt, $XtX, $Xtz)
+bm2
+```
+
+### Conclusion
+
+By careful consideration of the computational algorithms, we achieve a whooping speedup of
+
+```{julia}
+# speed-up
+median(bm1.times) / median(bm2.times)
+```
+
+For PhD students, that means, instead of waiting two months (65 days) for your simulations to finish, you only need one day!
