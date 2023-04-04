@@ -6,3 +6,5 @@ dependencies:
   - r-essentials
   - r-bench
   - r-microbenchmark
+  - r-JuliaCall
+  - r-markdown
