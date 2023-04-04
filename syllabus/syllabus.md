@@ -20,11 +20,13 @@ Location and time: CHS 41-268A, Tuesday and Thursday @ 1pm-2:50pm.
 [Dr. Hua Zhou](http://hua-zhou.github.io/)  
 Office: CHS 21-254A  
 Email: <huazhou@ucla.edu>  
-Office hours: Tue 3pm-4pm, Thu 4:30pm-5:30pm in office.
+Office hours: Tue/Thu 12pm-1pm in office.
 
 ### Teaching Assistant
 
-TBA
+Parsa Jamshidian <jamshidian@ucla.edu>
+
+Office hours: TBA.
 
 ### Course Topics
 
