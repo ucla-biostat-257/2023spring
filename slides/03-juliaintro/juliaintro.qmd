@@ -100,7 +100,7 @@ The `Julia` REPL, or `Julia` shell, has at least five modes.
 
 3. **Shell mode** `shell>`. Type `;` to enter shell mode.  
 
-4. **Package mode** `(@v1.7) pkg>`. Type `]` to enter package mode for managing Julia packages (install, uninstall, update, ...).
+4. **Package mode** `(@v1.8) pkg>`. Type `]` to enter package mode for managing Julia packages (install, uninstall, update, ...).
 
 5. **Search mode** `(reverse-i-search)`. Press `ctrl+R` to enter search model. 
 
@@ -151,19 +151,19 @@ Google search with `PackageName.jl` usually leads to the package on github.com.
 * For example, the package called `Distributions.jl` is added with
 ```julia
 # in Pkg mode
-(@v1.7) pkg> add Distributions
+(@v1.8) pkg> add Distributions
 ```
 and "removed" (although not completely deleted) with
 ```julia
 # in Pkg mode
-(@v1.7) pkg> rm Distributions
+(@v1.8) pkg> rm Distributions
 ```
 * The package manager provides a dependency solver that determines which packages are actually required to be installed.
 
 * **Non-registered** packages are added by cloning the relevant Git repository. E.g.,
 ```julia
 # in Pkg mode
-(@v1.7) pkg> add https://github.com/OpenMendel/SnpArrays.jl
+(@v1.8) pkg> add https://github.com/OpenMendel/SnpArrays.jl
 ```
 
 * A package needs only be added once, at which point it is downloaded into your local `.julia/packages` directory in your home directory. 
@@ -208,7 +208,7 @@ All functions, not only exported functions, are always available like this.
 x = randn(1000)
 # $ is the interpolation operator
 R"""
-hist($x, main="I'm plotting a Julia vector")
+hist($x, main = "I'm plotting a Julia vector")
 """
 ```
 
@@ -525,7 +525,7 @@ x, y, z = randn(5, 3), randn(5, 2), randn(3, 5)
 [x y; z] # 8-by-5 matrix
 ```
 
-### Dot operation
+### Dot operation (broadcasting)
 
 Dot operation in Julia is elementwise operation, similar to Matlab.
 
@@ -983,7 +983,7 @@ In R or Python, `g(2)` and `g(2.0)` would use the same code for both.
 
 In Julia, `g(2)` and `g(2.0)` dispatches to optimized code for `Int64` and `Float64`, respectively.
 
-For integer input `x`, LLVM compiler is smart enough to know `x + x` is simple shifting `x` by 1 bit, which is faster than addition.
+For integer input `x`, LLVM compiler is smart enough to know `x + x` is simply shifting `x` by 1 bit, which is faster than addition.
  
 * **Step 4**: Lowest level is the **assembly code**, which is machine dependent.
 
