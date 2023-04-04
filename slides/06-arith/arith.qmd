@@ -54,6 +54,10 @@ Pkg.status()
 * EB = exabytes = $10^{18}$ bytes. Size of all healthcare data in 2011 is ~150 EB.    
 * ZB = zetabytes = $10^{21}$ bytes. 
 
+Difference between `KB` and `KiB`: `1 KB = 1000 bytes` but `1 KiB = 1024 bytes`. 
+
+Difference between `TB` and `TiB`: `1 TB = 1000 GB` but `1 TiB = 1024 GB`. 
+
 Julia function `Base.summarysize` shows the amount of memory (in bytes) used by an object.
 
 ```{julia}
@@ -110,7 +114,7 @@ varinfo() # similar to Matlab whos()
     - The `integer` type in R has $M=32$ or 64 bits, determined by machine word size. 
     - Matlab has `(u)int8`, `(u)int16`, `(u)int32`, `(u)int64`.  
 
-* Julia has even more integer types. Using Tom Breloff's `Plots.jl` and `GraphRecipes.jl` packages, we can [visualize the type tree](http://www.breloff.com/Graphs/) under `Integer`
+* Julia has even more integer types. Using `Plots.jl` and `GraphRecipes.jl` packages, we can [visualize the type tree](http://www.breloff.com/Graphs/) under `Integer`
     - Storage for a `Signed` or `Unsigned` integer can be $M = 8, 16, 32, 64$ or 128 bits.  
     - GraphRecipes.jl package has a convenience function for plotting the type hiearchy.
 
@@ -139,8 +143,8 @@ plot(Integer, method = :tree, fontsize = 4)
 ```{julia}
 @show typeof(18)
 @show bitstring(18)
-@show bitstring(-18)
-@show bitstring(UInt64(Int128(2)^64 - 18)) == bitstring(-18)
+@show bitstring(-18) # two's complement representation
+@show bitstring(UInt64(Int128(2)^64 - 18)) == bitstring(-18) # modular arithmetic
 @show bitstring(2 * 18) # shift bits of 18
 @show bitstring(2 * -18); # shift bits of -18
 ```
@@ -242,7 +246,7 @@ $$ +0.1001 \times 2^5 \quad (\text{denormalized}).$$
 using GraphRecipes, Plots
 
 #pyplot(size=(800, 600))
-gr(size=(600, 400))
+gr(size = (600, 400))
 theme(:default)
 
 plot(AbstractFloat, method = :tree, fontsize = 4)
@@ -486,4 +490,4 @@ Floating-point numbers may violate many algebraic laws we are familiar with, suc
 
 * Textbook treatment, e.g., Chapter II.2 of [Computational Statistics](http://ucla.worldcat.org/title/computational-statistics/oclc/437345409&referer=brief_results) by James Gentle (2010).
 
-* [What every computer scientist should know about floating-point arithmetic](http://hua-zhou.github.io/teaching/biostatm280-2017spring/readings/Goldberg91FloatingPoint.pdf) by David Goldberg (1991).
+* [What every computer scientist should know about floating-point arithmetic](https://ucla-biostat-257.github.io/2023spring/readings/Goldberg91FloatingPoint.pdf) by David Goldberg (1991).
