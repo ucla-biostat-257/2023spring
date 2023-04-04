@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Dr. Hua Zhou @ UCLA">
-<meta name="dcterms.date" content="2023-03-30">
+<meta name="dcterms.date" content="2023-04-03">
 
 <title>Course Introduction</title>
 <style>
@@ -2628,6 +2628,7 @@ vertical-align: -.125em;
   <ul>
   <li><a href="#run-jupyter-notebook-in-binder" id="toc-run-jupyter-notebook-in-binder" class="nav-link" data-scroll-target="#run-jupyter-notebook-in-binder"><span class="toc-section-number">6.1</span>  Run Jupyter Notebook in Binder</a></li>
   <li><a href="#run-jupyter-notebook-locally-on-your-own-computer" id="toc-run-jupyter-notebook-locally-on-your-own-computer" class="nav-link" data-scroll-target="#run-jupyter-notebook-locally-on-your-own-computer"><span class="toc-section-number">6.2</span>  Run Jupyter Notebook locally on your own computer</a></li>
+  <li><a href="#run-quarto-markdown-locally-on-your-own-computer" id="toc-run-quarto-markdown-locally-on-your-own-computer" class="nav-link" data-scroll-target="#run-quarto-markdown-locally-on-your-own-computer"><span class="toc-section-number">6.3</span>  Run Quarto Markdown locally on your own computer</a></li>
   </ul></li>
   <li><a href="#in-class-dicussion" id="toc-in-class-dicussion" class="nav-link" data-scroll-target="#in-class-dicussion"><span class="toc-section-number">7</span>  In class dicussion</a>
   <ul>
@@ -2663,7 +2664,7 @@ vertical-align: -.125em;
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 30, 2023</p>
+      <p class="date">April 3, 2023</p>
     </div>
   </div>
   
@@ -2728,8 +2729,7 @@ Environment:
 <h2 data-number="3" class="anchored" data-anchor-id="what-is-this-course-about"><span class="header-section-number">3</span> What is this course about?</h2>
 <ul>
 <li><p><strong>Not</strong> a course on statistical packages. It does not answer questions such as <em>How to fit a linear mixed model in R, Julia, SAS, SPSS, or Stata?</em></p></li>
-<li><p><strong>Not</strong> a pure programming course, although programming is important and we do homework in Julia.<br>
-BIOSTAT 203A (Data Management) in fall quarter focuses on programming in R and SAS.</p></li>
+<li><p><strong>Not</strong> a pure programming course, although programming is important and we do homework in Julia.</p></li>
 <li><p><strong>Not</strong> a course on data science. <a href="https://ucla-biostat-203b.github.io/2023winter/schedule/schedule.html">BIOSTAT 203B (Introduction to Data Science)</a> in winter quarter focuses on some software tools for data scientists.</p></li>
 <li><p>This course focuses on <strong>algorithms</strong>, mostly those in <strong>numerical linear algebra</strong> and <strong>numerical optimization</strong>.</p></li>
 </ul>
@@ -2762,7 +2762,7 @@ BIOSTAT 203A (Data Management) in fall quarter focuses on programming in R and S
 </section>
 <section id="how-to-get-started" class="level2" data-number="6">
 <h2 data-number="6" class="anchored" data-anchor-id="how-to-get-started"><span class="header-section-number">6</span> How to get started</h2>
-<p>All course materials are in GitHub repo <a href="https://github.com/ucla-biostat-257/2023spring" class="uri">https://github.com/ucla-biostat-257/2023spring</a>. Lecture notes are Jupyter Notebooks (<code>.ipynb</code> files) under the <code>slides</code> folder. It is a good idea to learn by running through the code examples. You can do this in several ways.</p>
+<p>All course materials are in GitHub repo <a href="https://github.com/ucla-biostat-257/2023spring" class="uri">https://github.com/ucla-biostat-257/2023spring</a>. Lecture notes are Jupyter Notebooks (<code>.ipynb</code> files) and Quarto Markdown (<code>.qmd</code> files) under the <code>slides</code> folder. It is a good idea to learn by running through the code examples. You can do this in several ways.</p>
 <section id="run-jupyter-notebook-in-binder" class="level3" data-number="6.1">
 <h3 data-number="6.1" class="anchored" data-anchor-id="run-jupyter-notebook-in-binder"><span class="header-section-number">6.1</span> Run Jupyter Notebook in Binder</h3>
 <p>A quick and easy way to run the Jupyter Notebooks is Binder, a free service that allows us to run Jupyter Notebooks in cloud. Simply follow the Binder link at the <a href="https://ucla-biostat-257.github.io/2023spring/schedule/schedule.html">schedule</a> page.</p>
@@ -2802,37 +2802,57 @@ BIOSTAT 203A (Data Management) in fall quarter focuses on programming in R and S
 <li>Course material is updated frequently. Remember to <code>git pull</code> to obtain the most recent material.</li>
 </ol>
 </section>
+<section id="run-quarto-markdown-locally-on-your-own-computer" class="level3" data-number="6.3">
+<h3 data-number="6.3" class="anchored" data-anchor-id="run-quarto-markdown-locally-on-your-own-computer"><span class="header-section-number">6.3</span> Run Quarto Markdown locally on your own computer</h3>
+<ol type="1">
+<li>Download and install Julia v1.8.x from <a href="https://julialang.org/downloads/" class="uri">https://julialang.org/downloads/</a>. On Mac, use Bash command<br>
+</li>
+</ol>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> ln <span class="at">-s</span> /Applications/Julia-1.8.app/Contents/Resources/julia/bin/julia /usr/local/bin/julia</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>to create a symbolic link so <code>julia</code> command is available anywhere in the terminal.</p>
+<ol start="2" type="1">
+<li><p>Follow the <a href="https://quarto.org/docs/get-started/">instructions</a> to install Quarto.</p></li>
+<li><p>Git clone the course material.<br>
+</p></li>
+</ol>
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/ucla-biostat-257/2023spring.git biostat-257-2023spring</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>You can change <code>biostat-257-2023spring</code> to any other directory name you prefer.</p>
+<ol start="4" type="1">
+<li><p>Double click the file <code>2023spring.Rproj</code> to open the project in RStudio.</p></li>
+<li><p>Navigate to the <code>slies</code> folder and run/render <code>qmd</code> files as you want.</p></li>
+</ol>
+</section>
 </section>
 <section id="in-class-dicussion" class="level2" data-number="7">
 <h2 data-number="7" class="anchored" data-anchor-id="in-class-dicussion"><span class="header-section-number">7</span> In class dicussion</h2>
 <p>The logistic regression is typically estimated by the Fisher scoring algorithm, or iteratively reweighted least squares (IWLS), which iterates according to <span class="math display">\[
 \boldsymbol{\beta}^{(t)} = (\mathbf{X}^T \mathbf{W}^{(t)} \mathbf{X})^{-1} \mathbf{X}^T \mathbf{W}^{(t)} \mathbf{z}^{(t)},
-\]</span> where <span class="math inline">\(\mathbf{z}^{(t)}\)</span> are pseudo-responses and <span class="math inline">\(\mathbf{W}^{(t)}\)</span> is a diagonal matrix with nonnegative weights on the diagonal. Superscript <span class="math inline">\(t\)</span> is the iterate number.</p>
-<p>Question: How much speedup we can achieve, by careful consideration of flops and memory usage, over the naive implementation?</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">inv</span>(X<span class="op">&#39;</span> <span class="op">*</span> <span class="fu">diagm</span>(w) <span class="op">*</span> X) <span class="op">*</span> X<span class="op">&#39;</span> <span class="op">*</span> <span class="fu">diagm</span>(w) <span class="op">*</span> z</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+\]</span> where <span class="math inline">\(\mathbf{z}^{(t)}\)</span> are pseudo-responses and <span class="math inline">\(\mathbf{W}^{(t)} = \text{diag}(\mathbf{w}^{(t)})\)</span> is a diagonal matrix with nonnegative weights on the diagonal. Superscript <span class="math inline">\(t\)</span> is the iterate number.</p>
+<p>Question: How much speedup we can achieve, by careful consideration of flops and memory usage, over the following naive implementation?</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">inv</span>(X<span class="op">&#39;</span> <span class="op">*</span> <span class="fu">diagm</span>(w) <span class="op">*</span> X) <span class="op">*</span> X<span class="op">&#39;</span> <span class="op">*</span> <span class="fu">diagm</span>(w) <span class="op">*</span> z</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <section id="experiment" class="level3" data-number="7.1">
 <h3 data-number="7.1" class="anchored" data-anchor-id="experiment"><span class="header-section-number">7.1</span> Experiment</h3>
 <p>First generate some data.</p>
 <div class="cell" data-tags="[]" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">LinearAlgebra</span>, <span class="bu">Random</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Random seed for reproducibility</span></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="bu">Random</span>.<span class="fu">seed!</span>(<span class="fl">257</span>)</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="co"># samples, features</span></span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>n, p <span class="op">=</span> <span class="fl">5000</span>, <span class="fl">100</span></span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co"># design matrix</span></span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> [<span class="fu">ones</span>(n) <span class="fu">randn</span>(n, p <span class="op">-</span> <span class="fl">1</span>)]</span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="co"># pseudo-responses</span></span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>z <span class="op">=</span> <span class="fu">randn</span>(n)</span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="co"># weights</span></span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>w <span class="op">=</span> <span class="fl">0.25</span> <span class="op">*</span> <span class="fu">rand</span>(n);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">LinearAlgebra</span>, <span class="bu">Random</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Random seed for reproducibility</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="bu">Random</span>.<span class="fu">seed!</span>(<span class="fl">257</span>)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="co"># samples, features</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>n, p <span class="op">=</span> <span class="fl">5000</span>, <span class="fl">100</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="co"># design matrix</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> [<span class="fu">ones</span>(n) <span class="fu">randn</span>(n, p <span class="op">-</span> <span class="fl">1</span>)]</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="co"># pseudo-responses</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>z <span class="op">=</span> <span class="fu">randn</span>(n)</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="co"># weights</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>w <span class="op">=</span> <span class="fl">0.25</span> <span class="op">*</span> <span class="fu">rand</span>(n);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="method-1" class="level3" data-number="7.2">
 <h3 data-number="7.2" class="anchored" data-anchor-id="method-1"><span class="header-section-number">7.2</span> Method 1</h3>
 <div class="cell" data-tags="[]" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># method 1 </span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>res1 <span class="op">=</span> <span class="fu">inv</span>(X<span class="op">&#39;</span> <span class="op">*</span> <span class="fu">diagm</span>(w) <span class="op">*</span> X) <span class="op">*</span> X<span class="op">&#39;</span> <span class="op">*</span> <span class="fu">diagm</span>(w) <span class="op">*</span> z</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># method 1 </span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>res1 <span class="op">=</span> <span class="fu">inv</span>(X<span class="op">&#39;</span> <span class="op">*</span> <span class="fu">diagm</span>(w) <span class="op">*</span> X) <span class="op">*</span> X<span class="op">&#39;</span> <span class="op">*</span> <span class="fu">diagm</span>(w) <span class="op">*</span> z</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="4">
 <pre><code>100-element Vector{Float64}:
   0.03628463723928781
@@ -2864,19 +2884,19 @@ BIOSTAT 203A (Data Management) in fall quarter focuses on programming in R and S
 </div>
 </div>
 <div class="cell" data-tags="[]" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">BenchmarkTools</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>bm1 <span class="op">=</span> <span class="pp">@benchmark</span> ((<span class="fu">inv</span>(<span class="op">$</span>X<span class="op">&#39;</span> <span class="op">*</span> <span class="fu">diagm</span>(<span class="op">$</span>w) <span class="op">*</span> <span class="op">$</span>X) <span class="op">*</span> <span class="op">$</span>X<span class="op">&#39;</span>) <span class="op">*</span> <span class="fu">diagm</span>(<span class="op">$</span>w)) <span class="op">*</span> <span class="op">$</span>z</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>bm1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">BenchmarkTools</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>bm1 <span class="op">=</span> <span class="pp">@benchmark</span> ((<span class="fu">inv</span>(<span class="op">$</span>X<span class="op">&#39;</span> <span class="op">*</span> <span class="fu">diagm</span>(<span class="op">$</span>w) <span class="op">*</span> <span class="op">$</span>X) <span class="op">*</span> <span class="op">$</span>X<span class="op">&#39;</span>) <span class="op">*</span> <span class="fu">diagm</span>(<span class="op">$</span>w)) <span class="op">*</span> <span class="op">$</span>z</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>bm1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="5">
 <div class="ansi-escaped-output">
 <pre>BenchmarkTools.Trial: 62 samples with 1 evaluation.
- Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">76.444 ms</span> … <span class="ansi-magenta-fg">124.367 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>7.33% … 39.95%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">79.308 ms               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>7.11%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">81.137 ms</span> ± <span class="ansi-green-fg">  8.397 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>8.43% ±  5.41%
-    ▃▅<span class="ansi-blue-fg"> </span>█▃ <span class="ansi-green-fg"> </span>                                                     
-  ▃███<span class="ansi-blue-fg">█</span>██▁<span class="ansi-green-fg">▃</span>▁▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▁▃ ▁
-  76.4 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>          113 ms <span class="ansi-bold">&lt;</span>
+ Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">77.518 ms</span> … <span class="ansi-magenta-fg">123.837 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>3.80% … 39.93%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">80.149 ms               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>7.22%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">81.349 ms</span> ± <span class="ansi-green-fg">  6.870 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>8.54% ±  5.34%
+     ▁█<span class="ansi-blue-fg">▄</span> <span class="ansi-green-fg"> </span>                                                      
+  ▅▅▁██<span class="ansi-blue-fg">█</span>▅<span class="ansi-green-fg">▁</span>▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▅ ▁
+  77.5 ms<span class="ansi-bright-black-fg">       </span><span class="ansi-bright-black-fg">Histogram: </span><span class="ansi-bright-black-fg ansi-bold">log(</span><span class="ansi-bright-black-fg">frequency</span><span class="ansi-bright-black-fg ansi-bold">)</span><span class="ansi-bright-black-fg"> by time</span>       112 ms <span class="ansi-bold">&lt;</span>
  Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">393.12 MiB</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">18</span>.</pre>
 </div>
 </div>
@@ -2885,26 +2905,26 @@ BIOSTAT 203A (Data Management) in fall quarter focuses on programming in R and S
 <section id="method-2" class="level3" data-number="7.3">
 <h3 data-number="7.3" class="anchored" data-anchor-id="method-2"><span class="header-section-number">7.3</span> Method 2</h3>
 <div class="cell" data-tags="[]" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># preallocation</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>XtWt <span class="op">=</span> <span class="fu">similar</span>(<span class="fu">transpose</span>(X))</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>XtX <span class="op">=</span> <span class="fu">Matrix</span><span class="dt">{Float64}</span>(<span class="cn">undef</span>, p, p)</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>Xtz <span class="op">=</span> <span class="fu">Vector</span><span class="dt">{Float64}</span>(<span class="cn">undef</span>, p)</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">myfun</span>(X, z, w, XtWt, XtX, Xtz)</span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># XtWt = X&#39; * W</span></span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mul!</span>(XtWt, <span class="fu">transpose</span>(X), <span class="fu">Diagonal</span>(w))</span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># XtX = X&#39; * W * X</span></span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mul!</span>(XtX, XtWt, X)</span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Xtz = X&#39; * W * z</span></span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mul!</span>(Xtz, XtWt, z)</span>
-<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Cholesky on XtX</span></span>
-<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>    LAPACK.<span class="fu">potrf!</span>(<span class="ch">&#39;U&#39;</span>, XtX)</span>
-<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Two triangular solves to solve (XtX) \ (Xtz)</span></span>
-<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>    BLAS.<span class="fu">trsv!</span>(<span class="ch">&#39;U&#39;</span>, <span class="ch">&#39;T&#39;</span>, <span class="ch">&#39;N&#39;</span>, XtX, Xtz)</span>
-<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>    BLAS.<span class="fu">trsv!</span>(<span class="ch">&#39;U&#39;</span>, <span class="ch">&#39;N&#39;</span>, <span class="ch">&#39;N&#39;</span>, XtX, Xtz)</span>
-<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>res2 <span class="op">=</span> <span class="fu">myfun</span>(X, z, w, XtWt, XtX, Xtz)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># preallocation</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>XtWt <span class="op">=</span> <span class="fu">similar</span>(<span class="fu">transpose</span>(X))</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>XtX <span class="op">=</span> <span class="fu">Matrix</span><span class="dt">{Float64}</span>(<span class="cn">undef</span>, p, p)</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>Xtz <span class="op">=</span> <span class="fu">Vector</span><span class="dt">{Float64}</span>(<span class="cn">undef</span>, p)</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">myfun</span>(X, z, w, XtWt, XtX, Xtz)</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># XtWt = X&#39; * W</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mul!</span>(XtWt, <span class="fu">transpose</span>(X), <span class="fu">Diagonal</span>(w))</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># XtX = X&#39; * W * X</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mul!</span>(XtX, XtWt, X)</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Xtz = X&#39; * W * z</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mul!</span>(Xtz, XtWt, z)</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Cholesky on XtX</span></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>    LAPACK.<span class="fu">potrf!</span>(<span class="ch">&#39;U&#39;</span>, XtX)</span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Two triangular solves to solve (XtX) \ (Xtz)</span></span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>    BLAS.<span class="fu">trsv!</span>(<span class="ch">&#39;U&#39;</span>, <span class="ch">&#39;T&#39;</span>, <span class="ch">&#39;N&#39;</span>, XtX, Xtz)</span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>    BLAS.<span class="fu">trsv!</span>(<span class="ch">&#39;U&#39;</span>, <span class="ch">&#39;N&#39;</span>, <span class="ch">&#39;N&#39;</span>, XtX, Xtz)</span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>res2 <span class="op">=</span> <span class="fu">myfun</span>(X, z, w, XtWt, XtX, Xtz)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="6">
 <pre><code>100-element Vector{Float64}:
   0.03628463723928781
@@ -2936,17 +2956,17 @@ BIOSTAT 203A (Data Management) in fall quarter focuses on programming in R and S
 </div>
 </div>
 <div class="cell" data-tags="[]" data-execution_count="7">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>bm2 <span class="op">=</span> <span class="pp">@benchmark</span> <span class="fu">myfun</span>(<span class="op">$</span>X, <span class="op">$</span>z, <span class="op">$</span>w, <span class="op">$</span>XtWt, <span class="op">$</span>XtX, <span class="op">$</span>Xtz)</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>bm2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>bm2 <span class="op">=</span> <span class="pp">@benchmark</span> <span class="fu">myfun</span>(<span class="op">$</span>X, <span class="op">$</span>z, <span class="op">$</span>w, <span class="op">$</span>XtWt, <span class="op">$</span>XtX, <span class="op">$</span>Xtz)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>bm2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="7">
 <div class="ansi-escaped-output">
-<pre>BenchmarkTools.Trial: 4098 samples with 1 evaluation.
- Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">1.204 ms</span> … <span class="ansi-magenta-fg"> 1.609 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">1.218 ms              </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">1.219 ms</span> ± <span class="ansi-green-fg">10.673 μs</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.00% ± 0.00%
-                ▁▃▄▄▇▇▇█▆▇▄▃▃<span class="ansi-blue-fg">▂</span>▂<span class="ansi-green-fg">▂</span>▄▂▃▃▂▂▂▂▃▂                    
-  ▂▁▂▂▂▂▃▃▃▄▅▆▇██████████████<span class="ansi-blue-fg">█</span>█<span class="ansi-green-fg">█</span>██████████▇▇██▆▆▅▅▄▅▄▄▃▃▃▂▃▃ ▅
-  1.2 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>        1.23 ms <span class="ansi-bold">&lt;</span>
+<pre>BenchmarkTools.Trial: 4070 samples with 1 evaluation.
+ Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">1.210 ms</span> … <span class="ansi-magenta-fg"> 1.473 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">1.224 ms              </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">1.228 ms</span> ± <span class="ansi-green-fg">16.909 μs</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.00% ± 0.00%
+      ▄▇█▇▇▇█<span class="ansi-blue-fg">▇</span>▄▂<span class="ansi-green-fg">▃</span>▁                                            
+  ▂▃▆████████<span class="ansi-blue-fg">█</span>██<span class="ansi-green-fg">█</span>███▇▆▇▅▅▄▄▃▃▂▂▂▂▁▂▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▃
+  1.21 ms<span class="ansi-bright-black-fg">        Histogram: frequency by time</span>        1.29 ms <span class="ansi-bold">&lt;</span>
  Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">0 bytes</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">0</span>.</pre>
 </div>
 </div>
@@ -2956,10 +2976,10 @@ BIOSTAT 203A (Data Management) in fall quarter focuses on programming in R and S
 <h3 data-number="7.4" class="anchored" data-anchor-id="conclusion"><span class="header-section-number">7.4</span> Conclusion</h3>
 <p>By careful consideration of the computational algorithms, we achieve a whooping speedup of</p>
 <div class="cell" data-tags="[]" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># speed-up</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">median</span>(bm1.times) <span class="op">/</span> <span class="fu">median</span>(bm2.times)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># speed-up</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">median</span>(bm1.times) <span class="op">/</span> <span class="fu">median</span>(bm2.times)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="8">
-<pre><code>65.10906678028773</code></pre>
+<pre><code>65.45675025194821</code></pre>
 </div>
 </div>
 <p>For PhD students, that means, instead of waiting two months (65 days) for your simulations to finish, you only need one day!</p>

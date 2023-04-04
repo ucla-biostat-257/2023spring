@@ -63,7 +63,6 @@ Pkg.status()
 * **Not** a course on statistical packages. It does not answer questions such as _How to fit a linear mixed model in R,  Julia, SAS, SPSS, or Stata?_
 
 * **Not** a pure programming course, although programming is important and we do homework in Julia.  
-BIOSTAT 203A (Data Management) in fall quarter focuses on programming in R and SAS.
 
 * **Not** a course on data science. [BIOSTAT 203B (Introduction to Data Science)](https://ucla-biostat-203b.github.io/2023winter/schedule/schedule.html) in winter quarter focuses on some software tools for data scientists.
 
@@ -103,7 +102,7 @@ BIOSTAT 203A (Data Management) in fall quarter focuses on programming in R and S
 
 ## How to get started
 
-All course materials are in GitHub repo <https://github.com/ucla-biostat-257/2023spring>. Lecture notes are Jupyter Notebooks (`.ipynb` files) under the `slides` folder. It is a good idea to learn by running through the code examples. You can do this in several ways. 
+All course materials are in GitHub repo <https://github.com/ucla-biostat-257/2023spring>. Lecture notes are Jupyter Notebooks (`.ipynb` files) and Quarto Markdown (`.qmd` files) under the `slides` folder. It is a good idea to learn by running through the code examples. You can do this in several ways. 
 
 ### Run Jupyter Notebook in Binder
 
@@ -147,15 +146,35 @@ to open a Jupyter notebook.
 
 6. Course material is updated frequently. Remember to `git pull` to obtain the most recent material.
 
+### Run Quarto Markdown locally on your own computer
+
+1. Download and install Julia v1.8.x from <https://julialang.org/downloads/>. On Mac, use Bash command   
+```bash  
+sudo ln -s /Applications/Julia-1.8.app/Contents/Resources/julia/bin/julia /usr/local/bin/julia
+```
+to create a symbolic link so `julia` command is available anywhere in the terminal. 
+
+2. Follow the [instructions](https://quarto.org/docs/get-started/) to install Quarto.
+
+3. Git clone the course material.   
+```bash
+git clone https://github.com/ucla-biostat-257/2023spring.git biostat-257-2023spring
+```
+You can change `biostat-257-2023spring` to any other directory name you prefer.
+
+4. Double click the file `2023spring.Rproj` to open the project in RStudio.
+
+5. Navigate to the `slies` folder and run/render `qmd` files as you want.
+
 ## In class dicussion
 
 The logistic regression is typically estimated by the Fisher scoring algorithm, or iteratively reweighted least squares (IWLS), which iterates according to
 $$
 \boldsymbol{\beta}^{(t)} = (\mathbf{X}^T \mathbf{W}^{(t)} \mathbf{X})^{-1} \mathbf{X}^T \mathbf{W}^{(t)} \mathbf{z}^{(t)},
 $$
-where $\mathbf{z}^{(t)}$ are pseudo-responses and $\mathbf{W}^{(t)}$ is a diagonal matrix with nonnegative weights on the diagonal. Superscript $t$ is the iterate number.
+where $\mathbf{z}^{(t)}$ are pseudo-responses and $\mathbf{W}^{(t)} = \text{diag}(\mathbf{w}^{(t)})$ is a diagonal matrix with nonnegative weights on the diagonal. Superscript $t$ is the iterate number.
 
-Question: How much speedup we can achieve, by careful consideration of flops and memory usage, over the naive implementation?
+Question: How much speedup we can achieve, by careful consideration of flops and memory usage, over the following naive implementation?
 ```julia
 inv(X' * diagm(w) * X) * X' * diagm(w) * z
 ```
