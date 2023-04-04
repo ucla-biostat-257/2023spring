@@ -26,13 +26,11 @@ jupyter:
     name: julia-1.8
 ---
 
-# Reproducible Research Using Jupyter Notebook
-
 > An article about computational science in a scientific publication is **not** the scholarship itself, it is merely **advertising** of the scholarship. The actual scholarship is the complete software development environment and the complete set of instructions which generated the figures.
 > 
 > -- Buckheit and Donoho (1995)
 
-* For background and history of reproducible research in statistics/data science, see [lecture notes](https://ucla-biostat-203b.github.io/2022winter/slides/03-repres/repres.html) in 203B.
+* For background and history of reproducible research in statistics/data science, see [lecture notes](https://ucla-biostat-203b.github.io/2023winter/slides/03-repres/repres.html) in 203B.
 
 * This course assumes familiarity with Git/GitHub and Jupyter Notebook. Your homework should be authored using Jupyter Notebook and submitted via Git/GitHub.
 
@@ -74,7 +72,7 @@ notebook() # using home as working directory
 ```
 or, using current directory as the working directory, by
 ```julia
-notebook(dir=pwd()) # using current directory as working directory 
+notebook(dir = pwd()) # using current directory as working directory 
 ```
 
 * Notebook can be stopped by hitting `Ctrl+c` in Julia REPL.
@@ -123,3 +121,9 @@ jupyterlab(dir = pwd()) # use current directory as working directory
 ```
 
 - To install extensions for JupyterLab, `Settings` -> `Enable Extension Manager (experimental)` then click the extension icon on the left to search, install, and uninstall extensions.
+
+## Quarto
+
+* [Quarto](https://quarto.org/), developed by Posit (formerly RStudio), is an open-source scientific and technical publishing system.
+
+* We can use [Jupytext](https://jupytext.readthedocs.io/en/latest/) to maintain parallel synchronized versions of .qmd and .ipynb files. 

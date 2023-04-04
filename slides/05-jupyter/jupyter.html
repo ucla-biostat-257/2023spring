@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Dr. Hua Zhou @ UCLA">
-<meta name="dcterms.date" content="2023-03-17">
+<meta name="dcterms.date" content="2023-04-04">
 
 <title>Reproducible Research Using Jupyter Notebook</title>
 <style>
@@ -2619,15 +2619,13 @@ vertical-align: -.125em;
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#reproducible-research-using-jupyter-notebook" id="toc-reproducible-research-using-jupyter-notebook" class="nav-link active" data-scroll-target="#reproducible-research-using-jupyter-notebook"><span class="toc-section-number">1</span>  Reproducible Research Using Jupyter Notebook</a>
+  <li><a href="#jupyter-notebook" id="toc-jupyter-notebook" class="nav-link active" data-scroll-target="#jupyter-notebook"><span class="toc-section-number">1</span>  Jupyter Notebook</a>
   <ul>
-  <li><a href="#jupyter-notebook" id="toc-jupyter-notebook" class="nav-link" data-scroll-target="#jupyter-notebook"><span class="toc-section-number">1.1</span>  Jupyter Notebook</a>
-  <ul class="collapse">
-  <li><a href="#installation" id="toc-installation" class="nav-link" data-scroll-target="#installation"><span class="toc-section-number">1.1.1</span>  Installation</a></li>
-  <li><a href="#usage" id="toc-usage" class="nav-link" data-scroll-target="#usage"><span class="toc-section-number">1.1.2</span>  Usage</a></li>
+  <li><a href="#installation" id="toc-installation" class="nav-link" data-scroll-target="#installation"><span class="toc-section-number">1.1</span>  Installation</a></li>
+  <li><a href="#usage" id="toc-usage" class="nav-link" data-scroll-target="#usage"><span class="toc-section-number">1.2</span>  Usage</a></li>
   </ul></li>
-  <li><a href="#jupyterlab" id="toc-jupyterlab" class="nav-link" data-scroll-target="#jupyterlab"><span class="toc-section-number">1.2</span>  JupyterLab</a></li>
-  </ul></li>
+  <li><a href="#jupyterlab" id="toc-jupyterlab" class="nav-link" data-scroll-target="#jupyterlab"><span class="toc-section-number">2</span>  JupyterLab</a></li>
+  <li><a href="#quarto" id="toc-quarto" class="nav-link" data-scroll-target="#quarto"><span class="toc-section-number">3</span>  Quarto</a></li>
   </ul>
 </nav>
 </div>
@@ -2655,7 +2653,7 @@ vertical-align: -.125em;
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 17, 2023</p>
+      <p class="date">April 4, 2023</p>
     </div>
   </div>
   
@@ -2665,19 +2663,17 @@ vertical-align: -.125em;
 
 </header>
 
-<section id="reproducible-research-using-jupyter-notebook" class="level1" data-number="1">
-<h1 data-number="1"><span class="header-section-number">1</span> Reproducible Research Using Jupyter Notebook</h1>
 <blockquote class="blockquote">
 <p>An article about computational science in a scientific publication is <strong>not</strong> the scholarship itself, it is merely <strong>advertising</strong> of the scholarship. The actual scholarship is the complete software development environment and the complete set of instructions which generated the figures.</p>
 <p>– Buckheit and Donoho (1995)</p>
 </blockquote>
 <ul>
-<li><p>For background and history of reproducible research in statistics/data science, see <a href="https://ucla-biostat-203b.github.io/2022winter/slides/03-repres/repres.html">lecture notes</a> in 203B.</p></li>
+<li><p>For background and history of reproducible research in statistics/data science, see <a href="https://ucla-biostat-203b.github.io/2023winter/slides/03-repres/repres.html">lecture notes</a> in 203B.</p></li>
 <li><p>This course assumes familiarity with Git/GitHub and Jupyter Notebook. Your homework should be authored using Jupyter Notebook and submitted via Git/GitHub.</p>
 <p>For an introduction to Git/GitHub, see <a href="https://ucla-biostat-203b.github.io/2023winter/slides/04-git/git.html">lecture notes</a> in 203B.</p></li>
 </ul>
-<section id="jupyter-notebook" class="level2" data-number="1.1">
-<h2 data-number="1.1" class="anchored" data-anchor-id="jupyter-notebook"><span class="header-section-number">1.1</span> Jupyter Notebook</h2>
+<section id="jupyter-notebook" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="jupyter-notebook"><span class="header-section-number">1</span> Jupyter Notebook</h2>
 <ul>
 <li><p>IPython notebook (precursor of Jupyter notebook) is a powerful tool for authoring dynamic document in Python, which combines code, formatted text, math, and multimedia in a single document.</p></li>
 <li><p><a href="http://jupyter.org">Jupyter</a> is the current development that emcompasses multiple languages including <strong>Ju</strong>lia, <strong>Pyt</strong>hon, and <strong>R</strong>.</p></li>
@@ -2686,8 +2682,8 @@ vertical-align: -.125em;
 <li><p>For each homework, you need to submit your Jupyter Notebook (.e.g, <code>hw1.ipynb</code>), html (e.g., <code>hw1.html</code>), along with all code and data that are necessary to reproduce the results.</p></li>
 <li><p>You can start with the Jupyter Notebook for the lectures.</p></li>
 </ul>
-<section id="installation" class="level3" data-number="1.1.1">
-<h3 data-number="1.1.1" class="anchored" data-anchor-id="installation"><span class="header-section-number">1.1.1</span> Installation</h3>
+<section id="installation" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="installation"><span class="header-section-number">1.1</span> Installation</h3>
 <p>Installing the IJulia.jl package will install a minimal Python/Jupyter distribution that is private to Julia.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Pkg</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="bu">Pkg</span>.<span class="fu">add</span>(<span class="st">&quot;IJulia&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -2695,15 +2691,15 @@ vertical-align: -.125em;
 <div class="sourceCode" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="cn">ENV</span>[<span class="st">&quot;JUPYTER&quot;</span>] <span class="op">=</span> <span class="st">&quot;path_to_jupyter_executable&quot;</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="bu">Pkg</span>.<span class="fu">build</span>(<span class="st">&quot;IJulia&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
-<section id="usage" class="level3" data-number="1.1.2">
-<h3 data-number="1.1.2" class="anchored" data-anchor-id="usage"><span class="header-section-number">1.1.2</span> Usage</h3>
+<section id="usage" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="usage"><span class="header-section-number">1.2</span> Usage</h3>
 <ul>
 <li>We can invoke Jupyter notebook within Julia by</li>
 </ul>
 <div class="sourceCode" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">IJulia</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">notebook</span>() <span class="co"># using home as working directory </span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>or, using current directory as the working directory, by</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">notebook</span>(dir<span class="op">=</span><span class="fu">pwd</span>()) <span class="co"># using current directory as working directory </span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">notebook</span>(dir <span class="op">=</span> <span class="fu">pwd</span>()) <span class="co"># using current directory as working directory </span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <ul>
 <li><p>Notebook can be stopped by hitting <code>Ctrl+c</code> in Julia REPL.</p></li>
 <li><p>Useful to know some keyboard shortcuts. I frequently use</p>
@@ -2735,8 +2731,8 @@ Check more shortcuts in menu <code>Help</code> -&gt; <code>Keyboard Shortcuts</c
 </ul>
 </section>
 </section>
-<section id="jupyterlab" class="level2" data-number="1.2">
-<h2 data-number="1.2" class="anchored" data-anchor-id="jupyterlab"><span class="header-section-number">1.2</span> JupyterLab</h2>
+<section id="jupyterlab" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="jupyterlab"><span class="header-section-number">2</span> JupyterLab</h2>
 <ul>
 <li><p>JupyterLab (more IDE-like) is supposed to replace Jupyter Notebook after it reaches v1.0.</p></li>
 <li><p>To invoke JupyterLab:</p></li>
@@ -2748,6 +2744,12 @@ Check more shortcuts in menu <code>Help</code> -&gt; <code>Keyboard Shortcuts</c
 <li>To install extensions for JupyterLab, <code>Settings</code> -&gt; <code>Enable Extension Manager (experimental)</code> then click the extension icon on the left to search, install, and uninstall extensions.</li>
 </ul>
 </section>
+<section id="quarto" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="quarto"><span class="header-section-number">3</span> Quarto</h2>
+<ul>
+<li><p><a href="https://quarto.org/">Quarto</a>, developed by Posit (formerly RStudio), is an open-source scientific and technical publishing system.</p></li>
+<li><p>We can use <a href="https://jupytext.readthedocs.io/en/latest/">Jupytext</a> to maintain parallel synchronized versions of .qmd and .ipynb files.</p></li>
+</ul>
 </section>
 
 </main>
