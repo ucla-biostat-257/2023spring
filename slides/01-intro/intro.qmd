@@ -200,6 +200,8 @@ w = 0.25 * rand(n);
 
 ### Method 1
 
+The following code literally translates the mathematical expression into code.
+
 ```{julia}
 # method 1 
 res1 = inv(X' * diagm(w) * X) * X' * diagm(w) * z
@@ -212,11 +214,35 @@ bm1 = @benchmark ((inv($X' * diagm($w) * $X) * $X') * diagm($w)) * $z
 bm1
 ```
 
+Several unwise choices of algorithms waste lots of flops. The memeory allocations, caused by intermediate results, also slow down the program because of the need for garbage collection. This is a common mistake a beginner programmer in a high-level language makes. For example, the following R code (same algorithm on the same data) shows similar allocation. R code is much slower than Julia maybe because of the outdated BLAS/LAPACK library being used. 
+
+```{julia}
+using RCall
+
+R"""
+library(bench)
+library(tidyverse)
+
+# Interpolate Julia variables into R workspace
+X <- $X
+w <- $w
+z <- $z
+
+rbm <- bench::mark(
+  solve(t(X) %*% diag(w) %*% X) %*% t(X) %*% diag(w) %*% z,
+  iterations = 10
+  ) %>% 
+  print(width = Inf)
+"""
+```
+
 ### Method 2
+
+In the following code, we make smarter choice of algorithms (rearranging order of evaluation; utilizing data structures such as diagonal matrix, triangular matrix, and positive definite matrices) and get rid of memeory allocation by pre-allocating intermediate arrays. 
 
 ```{julia}
 # preallocation
-XtWt = similar(transpose(X))
+XtWt = Matrix{Float64}(undef, p, n)
 XtX = Matrix{Float64}(undef, p, p)
 Xtz = Vector{Float64}(undef, p)
 
@@ -234,6 +260,7 @@ function myfun(X, z, w, XtWt, XtX, Xtz)
     BLAS.trsv!('U', 'N', 'N', XtX, Xtz)
 end
 
+# First check correctness vs Method 1
 res2 = myfun(X, z, w, XtWt, XtX, Xtz)
 ```
 
