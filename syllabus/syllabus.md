@@ -26,7 +26,7 @@ Office hours: Tue/Thu 12pm-1pm in office.
 
 Parsa Jamshidian <jamshidian@ucla.edu>
 
-Office hours: TBA.
+Office hours: Wed 11am-1pm at Biostat Library (CHS 51-254).
 
 ### Course Topics
 
