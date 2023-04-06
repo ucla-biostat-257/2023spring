@@ -70,7 +70,7 @@ There are multiple paradigms to program GPU in Julia, depending on the specific 
 
 - The [oneAPI.jl](https://github.com/JuliaGPU/oneAPI.jl) package allows defining arrays on Intel GPUs and overloads many common operations.
 
-I'll illustrate using Metal.jl on my MacBook Pro running MacOS Ventura 13.2.1. It has Apple M2 chip with ??? GPU cores.
+I'll illustrate using Metal.jl on my MacBook Pro running MacOS Ventura 13.2.1. It has Apple M2 chip with 38 GPU cores.
 
 ```{julia}
 versioninfo()
@@ -117,8 +117,9 @@ x = collect(xd)
 ## Linear algebra
 
 ```{julia}
-using BenchmarkTools, LinearAlgebra
+using BenchmarkTools, LinearAlgebra, Random
 
+Random.seed!(257)
 n = 1024
 # on CPU
 x = rand(Float32, n, n)
@@ -130,42 +131,59 @@ yd = MtlArray(y)
 zd = MtlArray(z)
 
 # SP matrix multiplication on GPU
-@benchmark mul!($zd, $xd, $yd)
+bm_gpu = @benchmark Metal.@sync mul!($zd, $xd, $yd)
+```
+
+```{julia}
+# SP throughput on GPU
+(2n^3) / (minimum(bm_gpu.times) / 1e9)
 ```
 
 ```{julia}
 # SP matrix multiplication on CPU
-@benchmark mul!($z, $x, $y)
+bm_cpu = @benchmark mul!($z, $x, $y)
 ```
 
-We see ~10x speedup in this matrix multiplication example.
+```{julia}
+# SP throughput on CPU
+(2n^3) / (minimum(bm_cpu.times) / 1e9)
+```
+
+We see ~10x speedup by GPUs in this matrix multiplication example.
 
 ```{julia}
 # cholesky on Gram matrix
 # This one doesn't seem to work on Apple M2 chip yet
-xtxd = xd'xd + I
-@benchmark cholesky($(Symmetric(xtxd)))
+# xtxd = xd'xd + I
+# @benchmark Metal.@sync cholesky($(xtxd))
 ```
 
 ```{julia}
-xtx = collect(xtxd)
-@benchmark cholesky($(Symmetric(xtx)))
+# xtx = collect(xtxd)
+# @benchmark cholesky($(Symmetric(xtx)))
 ```
 
-GPU speedup of Cholesky on this example is moderate.
+GPU speedup of Cholesky seems unavailable at the moment.
 
 ## Elementiwise operations on GPU
 
 ```{julia}
 # elementwise function on GPU arrays
 fill!(yd, 1)
-@benchmark $zd .= log.($yd .+ sin.($xd))
+bm_gpu = @benchmark Metal.@sync $zd .= log.($yd .+ sin.($xd))
+bm_gpu
 ```
 
 ```{julia}
 # elementwise function on CPU arrays
 x, y, z = collect(xd), collect(yd), collect(zd)
-@benchmark $z .= log.($y .+ sin.($x))
+bm_cpu = @benchmark $z .= log.($y .+ sin.($x))
+bm_cpu
 ```
 
-GPU brings great speedup (>500x) to the massive evaluation of elementary math functions.
+```{julia}
+# Speed up
+median(bm_cpu.times) / median(bm_gpu.times)
+```
+
+GPU brings great speedup (>20x) to the massive evaluation of elementary math functions.
