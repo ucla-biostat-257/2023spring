@@ -122,10 +122,11 @@ varinfo() # similar to Matlab whos()
 using GraphRecipes, Plots
 
 #pyplot(size=(800, 600))
-gr(size=(600, 400))
+gr()
 theme(:default)
 
 plot(Integer, method = :tree, fontsize = 4)
+plot!(size = (1200, 800))
 ```
 
 ### Signed integers
@@ -154,7 +155,7 @@ plot(Integer, method = :tree, fontsize = 4)
     
 <img src="http://users.dickinson.edu/~braught/courses/cs251f02/classes/images/twosCompWheel.png" width="400" align="center"/>    
 
-* Arithmetics (addition, substraction, multiplication) of integers are exact except for the possiblity of overflow and underflow.
+* Arithmetics (addition, substraction, multiplication) of integers are **exact** except for the possiblity of overflow and underflow.
 
 * **Range** of representable integers by $M$-bit **signed integer** is $[-2^{M-1},2^{M-1}-1]$.
     - Julia functions `typemin(T)` and `typemax(T)` give the lowest and highest representable number of a type `T` respectively
@@ -192,7 +193,8 @@ Julia `BigInt` type is arbitrary precision.
 ### Overflow and underflow for integer arithmetic
 
 R reports `NA` for integer overflow and underflow.  
-**Julia outputs the result according to modular arithmetic.**
+
+> **Julia outputs the result according to modular arithmetic.**
 
 ```{julia}
 @show typemax(Int32)
@@ -246,10 +248,11 @@ $$ +0.1001 \times 2^5 \quad (\text{denormalized}).$$
 using GraphRecipes, Plots
 
 #pyplot(size=(800, 600))
-gr(size = (600, 400))
+gr()
 theme(:default)
 
 plot(AbstractFloat, method = :tree, fontsize = 4)
+plot!(size = (1200, 900))
 ```
 
 ### Double precision (Float64)
@@ -328,14 +331,14 @@ println("Half precision:")
 
 ### Special floating-point numbers. 
 
-- Exponent $e_{\max}+1$ plus a zero mantissa means $\pm \infty$.
+- Exponent $e_{\max}+1$ (exponent bits all 1) plus a zero mantissa means $\pm \infty$.
 
 ```{julia}
 @show bitstring(Inf) # Inf in double precision
 @show bitstring(-Inf); # -Inf in double precision
 ```
 
-- Exponent $e_{\max}+1$ plus a nonzero mantissa means `NaN`. `NaN` could be produced from `0 / 0`, `0 * Inf`, ...  
+- Exponent $e_{\max}+1$ (exponent bits all 1) plus a nonzero mantissa means `NaN`. `NaN` could be produced from `0 / 0`, `0 * Inf`, ...  
 
 - In general `NaN ≠ NaN` bitwise. Test whether a number is `NaN` by `isnan` function.  
 
@@ -344,13 +347,13 @@ println("Half precision:")
 @show bitstring(0 * Inf); # NaN
 ```
 
-- Exponent $e_{\min}-1$ with a zero mantissa represents the real number 0.  
+- Exponent $e_{\min}-1$ (exponent bits all 0) with a zero mantissa represents the real number 0.  
 
 ```{julia}
 @show bitstring(0.0); # 0 in double precision 
 ```
 
-- Exponent $e_{\min}-1$ with a nonzero mantissa are for numbers less than $b^{e_{\min}}$.  
+- Exponent $e_{\min}-1$ (exponent bits all 0) with a nonzero mantissa are for numbers less than $b^{e_{\min}}$.  
     Numbers are _denormalized_ in the range $(0,b^{e_{\min}})$ -- **graceful underflow**. 
 
 ```{julia}
@@ -376,18 +379,19 @@ For a number with mantissa ending with ...001(100..., all 0 digits after), it's 
 
 ### Summary
 
-- Double precision: range $\pm 10^{\pm 308}$ with precision up to 16 decimal digits.  
+- **Double precision**: range $\pm 10^{\pm 308}$ with precision up to 16 decimal digits.  
 
-- Single precision: range $\pm 10^{\pm 38}$ with precision up to 7 decimal digits.
+- **Single precision**: range $\pm 10^{\pm 38}$ with precision up to 7 decimal digits.
 
-- Half precision: range $\pm 10^{\pm 4}$ with precision up to 3 decimal digits.
+- **Half precision**: range $\pm 10^{\pm 4}$ with precision up to 3 decimal digits.
 
-- The floating-point numbers do not occur uniformly over the real number line
+- The floating-point numbers do not occur uniformly over the real number line. Each magnitude has same number of representible numbers
+
     <img src="http://www.volkerschatz.com/science/pics/fltscale-wh.png" width="700" align="center"/>
-    Each magnitude has same number of representible numbers
-    
+        
 - **Machine epsilons** are the spacings of numbers around 1: 
     $$\epsilon_{\min}=b^{-p}, \quad  \epsilon_{\max} = b^{1-p}.$$
+    
     <img src="./machine_epsilons.png" width="500" align="center"/>
 
 ```{julia}
@@ -424,8 +428,14 @@ The former expression can easily lead to `Inf / Inf = NaN`, while the latter exp
 
 ```{julia}
 for T in [Float16, Float32, Float64]
-    println(T, '\t', floatmin(T), '\t', floatmax(T), '\t', typemin(T), 
-        '\t', typemax(T), '\t', eps(T))
+    println(
+        T, '\t', 
+        floatmin(T), '\t', 
+        floatmax(T), '\t', 
+        typemin(T),  '\t', 
+        typemax(T), '\t', 
+        eps(T)
+    )
 end
 ```
 
@@ -434,7 +444,7 @@ end
 * `BigFloat` in Julia offers arbitrary precision.
 
 ```{julia}
-@show precision(BigFloat)
+@show precision(BigFloat) # default precision (how many bits) of BigFloat
 @show floatmin(BigFloat)
 @show floatmax(BigFloat);
 ```
@@ -474,7 +484,9 @@ a = 1.2345678f0 # rounding
 @show bitstring(a) # rounding
 b = 1.2345677f0
 @show bitstring(b)
-@show a - b # correct result should be 1e-7
+# correct result should be 1e-7
+# we see big error due to catastrophic cancellation
+@show a - b 
 ```
 
 * Implications for numerical computation
