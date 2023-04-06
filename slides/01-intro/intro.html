@@ -2892,13 +2892,13 @@ Environment:
 <span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>bm1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="5">
 <div class="ansi-escaped-output">
-<pre>BenchmarkTools.Trial: 63 samples with 1 evaluation.
- Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">75.073 ms</span> … <span class="ansi-magenta-fg">124.615 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>4.06% … 40.44%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">79.214 ms               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>7.29%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">80.401 ms</span> ± <span class="ansi-green-fg">  7.113 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>8.67% ±  5.37%
-      ▂▇█<span class="ansi-blue-fg">▅</span>▆<span class="ansi-green-fg"> </span>                                                    
-  ▃▁▁▁███<span class="ansi-blue-fg">█</span>█<span class="ansi-green-fg">▄</span>▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃ ▁
-  75.1 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>          112 ms <span class="ansi-bold">&lt;</span>
+<pre>BenchmarkTools.Trial: 66 samples with 1 evaluation.
+ Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">72.731 ms</span> … <span class="ansi-magenta-fg">122.000 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>7.88% … 40.78%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">75.049 ms               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>7.57%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">76.449 ms</span> ± <span class="ansi-green-fg">  7.398 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>8.89% ±  5.23%
+    ▅█<span class="ansi-blue-fg">▁</span> <span class="ansi-green-fg"> </span>                                                       
+  ▄▇██<span class="ansi-blue-fg">█</span>▆<span class="ansi-green-fg">▃</span>▁▃▃▃▁▁▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃ ▁
+  72.7 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>          111 ms <span class="ansi-bold">&lt;</span>
  Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">393.12 MiB</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">18</span>.</pre>
 </div>
 </div>
@@ -2939,10 +2939,10 @@ Environment:
 <pre><code># A tibble: 1 × 13
   expression                                                    min   median
   &lt;bch:expr&gt;                                               &lt;bch:tm&gt; &lt;bch:tm&gt;
-1 solve(t(X) %*% diag(w) %*% X) %*% t(X) %*% diag(w) %*% z    1.85s    1.86s
+1 solve(t(X) %*% diag(w) %*% X) %*% t(X) %*% diag(w) %*% z    1.86s    1.86s
   `itr/sec` mem_alloc `gc/sec` n_itr  n_gc total_time result         
       &lt;dbl&gt; &lt;bch:byt&gt;    &lt;dbl&gt; &lt;int&gt; &lt;dbl&gt;   &lt;bch:tm&gt; &lt;list&gt;         
-1     0.538     401MB     1.08    10    20      18.6s &lt;dbl [100 × 1]&gt;
+1     0.537     401MB     1.07    10    20      18.6s &lt;dbl [100 × 1]&gt;
   memory              time            gc               
   &lt;list&gt;              &lt;list&gt;          &lt;list&gt;           
 1 &lt;Rprofmem [54 × 3]&gt; &lt;bench_tm [10]&gt; &lt;tibble [10 × 3]&gt;</code></pre>
@@ -3013,26 +3013,49 @@ Environment:
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>bm2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="8">
 <div class="ansi-escaped-output">
-<pre>BenchmarkTools.Trial: 4056 samples with 1 evaluation.
- Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">1.208 ms</span> … <span class="ansi-magenta-fg"> 2.057 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">1.231 ms              </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">1.232 ms</span> ± <span class="ansi-green-fg">20.551 μs</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.00% ± 0.00%
-                        ▁▁▄▆█▆▇▆▆▇▆▆<span class="ansi-blue-fg">█</span>▇<span class="ansi-green-fg">█</span>▇▆▅▄▂▁▄▁▄▂▁            
-  ▁▁▁▂▂▁▂▁▂▂▂▂▂▂▂▂▃▃▃▆▆▇████████████<span class="ansi-blue-fg">█</span>█<span class="ansi-green-fg">█</span>████████████▇▅▅▄▄▃▂▂▂ ▅
-  1.21 ms<span class="ansi-bright-black-fg">        Histogram: frequency by time</span>        1.25 ms <span class="ansi-bold">&lt;</span>
+<pre>BenchmarkTools.Trial: 4081 samples with 1 evaluation.
+ Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">1.210 ms</span> … <span class="ansi-magenta-fg">1.431 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">1.223 ms             </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">1.225 ms</span> ± <span class="ansi-green-fg">9.452 μs</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.00% ± 0.00%
+             ▁▁▄▄▅▆█▆<span class="ansi-blue-fg">▇</span>▆<span class="ansi-green-fg">▅</span>▃▂▁▁▁                                
+  ▂▂▃▃▃▄▅▆▇▇█████████<span class="ansi-blue-fg">█</span>█<span class="ansi-green-fg">█</span>██████▇▆▅▅▆▅▄▄▄▄▃▃▃▃▃▃▂▃▃▂▂▂▂▂▂▂▂▁▂ ▄
+  1.21 ms<span class="ansi-bright-black-fg">        Histogram: frequency by time</span>       1.25 ms <span class="ansi-bold">&lt;</span>
  Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">0 bytes</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">0</span>.</pre>
 </div>
+</div>
+</div>
+<p>In R, a better implementation is</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">solve</span>(<span class="fu">t</span>(X <span class="sc">*</span> w) <span class="sc">%*%</span> X, <span class="fu">t</span>(X) <span class="sc">%*%</span> (z <span class="sc">*</span> w))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>It’s much faster than the naive implementation. To achieve zero memory allocation, some low-level coding using C++ and RcppEigen is necessary.</p>
+<div class="cell" data-tags="[]" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>R<span class="st">&quot;&quot;&quot;</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="st">bench::mark(</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="st">  solve(t(X * w) %*% X, t(X) %*% (z * w)),</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="st">  ) %&gt;% </span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="st">  print(width = Inf)</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;&quot;&quot;</span>;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 13
+  expression                                   min   median `itr/sec` mem_alloc
+  &lt;bch:expr&gt;                              &lt;bch:tm&gt; &lt;bch:tm&gt;     &lt;dbl&gt; &lt;bch:byt&gt;
+1 solve(t(X * w) %*% X, t(X) %*% (z * w))   20.1ms   20.6ms      48.5    11.6MB
+  `gc/sec` n_itr  n_gc total_time result          memory             
+     &lt;dbl&gt; &lt;int&gt; &lt;dbl&gt;   &lt;bch:tm&gt; &lt;list&gt;          &lt;list&gt;             
+1     4.41    22     2      453ms &lt;dbl [100 × 1]&gt; &lt;Rprofmem [10 × 3]&gt;
+  time            gc               
+  &lt;list&gt;          &lt;list&gt;           
+1 &lt;bench_tm [24]&gt; &lt;tibble [24 × 3]&gt;</code></pre>
 </div>
 </div>
 </section>
 <section id="conclusion" class="level3" data-number="7.4">
 <h3 data-number="7.4" class="anchored" data-anchor-id="conclusion"><span class="header-section-number">7.4</span> Conclusion</h3>
-<p>By careful consideration of the computational algorithms, we achieve a whooping speedup of</p>
-<div class="cell" data-tags="[]" data-execution_count="9">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># speed-up</span></span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="fu">median</span>(bm1.times) <span class="op">/</span> <span class="fu">median</span>(bm2.times)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="9">
-<pre><code>64.34064834421325</code></pre>
+<p>By careful consideration of the computational algorithms, we achieve a whooping speedup (in Julia) of</p>
+<div class="cell" data-tags="[]" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># speed-up</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="fu">median</span>(bm1.times) <span class="op">/</span> <span class="fu">median</span>(bm2.times)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="10">
+<pre><code>61.35592400710615</code></pre>
 </div>
 </div>
 <p>For PhD students, that means, instead of waiting two months (65 days) for your simulations to finish, you only need one day!</p>

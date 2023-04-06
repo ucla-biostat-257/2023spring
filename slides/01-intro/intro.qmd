@@ -269,9 +269,24 @@ bm2 = @benchmark myfun($X, $z, $w, $XtWt, $XtX, $Xtz)
 bm2
 ```
 
+In R, a better implementation is
+```r
+solve(t(X * w) %*% X, t(X) %*% (z * w))
+```
+It's much faster than the naive implementation. To achieve zero memory allocation, some low-level coding using C++ and RcppEigen is necessary.
+
+```{julia}
+R"""
+bench::mark(
+  solve(t(X * w) %*% X, t(X) %*% (z * w)),
+  ) %>% 
+  print(width = Inf)
+""";
+```
+
 ### Conclusion
 
-By careful consideration of the computational algorithms, we achieve a whooping speedup of
+By careful consideration of the computational algorithms, we achieve a whooping speedup (in Julia) of
 
 ```{julia}
 # speed-up
