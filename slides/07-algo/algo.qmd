@@ -54,7 +54,7 @@ Pkg.status()
 
 > A flop (**floating point operation**) consists of a floating point addition, subtraction, multiplication, division, or comparison, and the usually accompanying fetch and store.  
 
-    Some books count multiplication followed by an addition (fused multiply-add, FMA) as one flop. This results a factor of up to 2 difference in flop counts.
+* Some books count multiplication followed by an addition (fused multiply-add, FMA) as one flop. This results a factor of up to 2 difference in flop counts.
 
 * How to measure efficiency of an algorithm? Big O notation. If $n$ is the size of a problem, an algorithm has order $O(f(n))$, where the leading term in the number of flops is $c \cdot f(n)$. For example,
     - matrix-vector multiplication `A * b`, where `A` is $m \times n$ and `b` is $n \times 1$, takes $2mn$ or $O(mn)$ flops  
@@ -101,16 +101,24 @@ B = randn(n, n)
 x = randn(n)
 
 # complexity is n^3 + n^2 = O(n^3)
-@benchmark ($A * $B) * $x
+bm1 = @benchmark ($A * $B) * $x
+bm1
 ```
 
 ```{julia}
 # complexity is n^2 + n^2 = O(n^2)
-@benchmark $A * ($B * $x)
+bm2 = @benchmark $A * ($B * $x)
+bm2
 ```
 
 ```{julia}
-# fortunately, this is parsed to the more efficient way
+# Speed up
+median(bm1.times) / median(bm2.times)
+```
+
+```{julia}
+# Fortunately, Julia parsed the following code in the more efficient way
+# No luck with some other languages
 @code_lowered A * B * x
 ```
 
@@ -118,22 +126,47 @@ x = randn(n)
 
 * **FLOPS** (floating point operations per second) is a measure of computer performance. 
 
-* For example, my laptop has the Intel i7-6920HQ (Skylake) CPU with 4 cores runing at 2.90 GHz (cycles per second).
+* For example, this laptop has the [Apple M2](https://en.wikipedia.org/wiki/Apple_M2) Max CPU with 8 performance cores and 4 efficiency cores.
 
 ```{julia}
 versioninfo()
 ```
 
-Intel Skylake CPUs can do 16 DP flops per cylce and 32 SP flops per cycle. Then the **theoretical throughput** of my laptop is
+<!-- Intel Skylake CPUs can do 16 DP flops per cylce and 32 SP flops per cycle. Then the **theoretical throughput** of my laptop is
 $$ 4 \times 2.9 \times 10^9 \times 16 = 185.6 \text{ GFLOPS DP} $$
 in double precision and
 $$ 4 \times 2.9 \times 10^9 \times 32 = 371.2 \text{ GFLOPS SP} $$
-in single precision. 
+in single precision.  -->
 
-* In Julia, `LinearAlgebra.peakflops` computes the peak flop rate of the computer by using double precision `gemm!`
+* In Julia, `LinearAlgebra.peakflops` computes the peak flop rate of the computer by running **double precision** matrix-matrix multiplication `BLAS.gemm!`. About 385 GFLOPS DP.
 
 ```{julia}
 using LinearAlgebra
 
+# Double-precison throughput
 LinearAlgebra.peakflops(2^14) # matrix size 2^14
 ```
+
+We roughtly estimate the **single precision**  thoughput by (# flops / runtime). About 733 GFLOPS SP.
+
+```{julia}
+using BenchmarkTools, Random
+
+# Generate matrix data
+Random.seed!(257)
+n = 2^14
+A = randn(Float32, n, n)
+B = randn(Float32, n, n)
+C = Matrix{Float32}(undef, n, n)
+
+# Single-precision throughput
+bm = @benchmark mul!(C, A, B)
+bm
+```
+
+```{julia}
+# Estimate single precision throughput by # flops / runtime
+(2n^3) / (minimum(bm.times) / 1e9)
+```
+
+In a later lecture, we'll see graphical processing units (GPUs) offer a much larger thoughput in single precision.
