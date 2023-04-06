@@ -113,6 +113,8 @@ For multiline displayed math:
 
 - To invoke JupyterLab:
 ```julia
+using IJulia
+
 jupyterlab() # use home as working directory
 ```
 or

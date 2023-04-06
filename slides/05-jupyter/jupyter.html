@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Dr. Hua Zhou @ UCLA">
-<meta name="dcterms.date" content="2023-04-04">
+<meta name="dcterms.date" content="2023-04-06">
 
 <title>Reproducible Research Using Jupyter Notebook</title>
 <style>
@@ -2653,7 +2653,7 @@ vertical-align: -.125em;
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 4, 2023</p>
+      <p class="date">April 6, 2023</p>
     </div>
   </div>
   
@@ -2737,7 +2737,9 @@ Check more shortcuts in menu <code>Help</code> -&gt; <code>Keyboard Shortcuts</c
 <li><p>JupyterLab (more IDE-like) is supposed to replace Jupyter Notebook after it reaches v1.0.</p></li>
 <li><p>To invoke JupyterLab:</p></li>
 </ul>
-<div class="sourceCode" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">jupyterlab</span>() <span class="co"># use home as working directory</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">IJulia</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">jupyterlab</span>() <span class="co"># use home as working directory</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>or</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">jupyterlab</span>(dir <span class="op">=</span> <span class="fu">pwd</span>()) <span class="co"># use current directory as working directory</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <ul>
