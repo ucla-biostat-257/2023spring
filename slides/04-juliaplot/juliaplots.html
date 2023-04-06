@@ -7,9 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Dr. Hua Zhou @ UCLA">
-<meta name="dcterms.date" content="2023-04-04">
+<meta name="dcterms.date" content="2023-04-06">
 
-<title>Introduction to Julia</title>
+<title>Plotting in Julia</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -2628,7 +2628,7 @@ vertical-align: -.125em;
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Introduction to Julia</h1>
+<h1 class="title">Plotting in Julia</h1>
 <p class="subtitle lead">Biostat/Biomath M257</p>
 </div>
 
@@ -2646,7 +2646,7 @@ vertical-align: -.125em;
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 4, 2023</p>
+      <p class="date">April 6, 2023</p>
     </div>
   </div>
   
@@ -2686,10 +2686,11 @@ Environment:
 <pre><code>Status `~/Documents/github.com/ucla-biostat-257/2023spring/slides/04-juliaplot/Project.toml`
   [c91e804a] Gadfly v1.3.4
   [f0f68f2c] PlotlyJS v0.18.10
-  [91a5bcdd] Plots v1.38.8
+⌃ [91a5bcdd] Plots v1.38.8
   [d330b81b] PyPlot v2.11.1
   [6f49c342] RCall v0.13.14
-  [9a3f8284] Random</code></pre>
+  [9a3f8284] Random
+Info Packages marked with ⌃ have new versions available and may be upgradable.</code></pre>
 </div>
 </div>
 <div class="cell" data-tags="[]" data-execution_count="3">
@@ -2707,20 +2708,12 @@ for more information.
 <section id="plotting-in-julia" class="level1" data-number="1">
 <h1 data-number="1"><span class="header-section-number">1</span> Plotting in Julia</h1>
 <p><strong>Warning</strong>: The time to first plot can be frustratingly long in Julia because of the JIT compilation.</p>
-<p>The four most popular options (as far as I know) in Julia are</p>
+<p>The five most popular options (currently) for plotting in Julia are</p>
 <ul>
-<li><a href="https://github.com/GiovineItalia/Gadfly.jl">Gadfly.jl</a>
-<ul>
-<li>Julia equivalent of <code>ggplot2</code> in R</li>
-</ul></li>
-<li><a href="https://github.com/JuliaPy/PyPlot.jl">PyPlot.jl</a>
-<ul>
-<li>Wrapper for Python’s matplotlib</li>
-</ul></li>
-<li><a href="https://github.com/JuliaPlots/Plots.jl">Plots.jl</a>
+<li><p><a href="https://github.com/JuliaPlots/Plots.jl">Plots.jl</a></p>
 <ul>
 <li>Defines an unified interface for plotting</li>
-<li>maps arguments to different plotting “backends”
+<li>Maps arguments to different plotting “backends”
 <ul>
 <li>PyPlot, GR, PlotlyJS, and many more<br>
 </li>
@@ -2731,9 +2724,18 @@ for more information.
 </li>
 <li>First runs can be slowish. I found the GR backend fastest and most stable.</li>
 </ul></li>
-<li><a href="https://github.com/JuliaPlots/Makie.jl">Makie.jl</a>
+<li><p><a href="https://github.com/JuliaPlots/Makie.jl">Makie.jl</a></p>
 <ul>
 <li>A pure Julia solution. Very extensible. Check <a href="https://github.com/mmkim1210/GeneticsMakie.jl">GeneticsMakie.jl</a>.</li>
+</ul></li>
+<li><p>R users can just use <a href="https://github.com/JuliaInterop/RCall.jl">RCall.jl</a> package to plot using ggplot2 in R.</p></li>
+<li><p><a href="https://github.com/GiovineItalia/Gadfly.jl">Gadfly.jl</a></p>
+<ul>
+<li>Julia equivalent of <code>ggplot2</code> in R</li>
+</ul></li>
+<li><p><a href="https://github.com/JuliaPy/PyPlot.jl">PyPlot.jl</a></p>
+<ul>
+<li>Wrapper for Python’s matplotlib</li>
 </ul></li>
 </ul>
 <section id="gadfly.jl" class="level2" data-number="1.1">

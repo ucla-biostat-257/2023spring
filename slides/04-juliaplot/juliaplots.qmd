@@ -1,5 +1,5 @@
 ---
-title: Introduction to Julia
+title: Plotting in Julia
 subtitle: Biostat/Biomath M257
 author: Dr. Hua Zhou @ UCLA
 date: today
@@ -49,18 +49,11 @@ using Gadfly, Plots, PlotlyJS, PyPlot, Random, RCall
 
 **Warning**: The time to first plot can be frustratingly long in Julia because of the JIT compilation.
 
-The four most popular options (as far as I know) in Julia are
+The five most popular options (currently) for plotting in Julia are
 
-- [Gadfly.jl](https://github.com/GiovineItalia/Gadfly.jl)
-    - Julia equivalent of `ggplot2` in R
-    
-- [PyPlot.jl](https://github.com/JuliaPy/PyPlot.jl)
-    - Wrapper for Python's matplotlib
-    
-    
 - [Plots.jl](https://github.com/JuliaPlots/Plots.jl)
     - Defines an unified interface for plotting
-    - maps arguments to different plotting "backends"
+    - Maps arguments to different plotting "backends"
         - PyPlot, GR, PlotlyJS, and many more  
     - For a complete list of backends: <http://docs.juliaplots.org/latest/backends/>  
     - Mapping of attributes to backends: <http://docs.juliaplots.org/latest/supported/>  
@@ -68,6 +61,14 @@ The four most popular options (as far as I know) in Julia are
     
 - [Makie.jl](https://github.com/JuliaPlots/Makie.jl)  
     - A pure Julia solution. Very extensible. Check [GeneticsMakie.jl](https://github.com/mmkim1210/GeneticsMakie.jl). 
+
+- R users can just use [RCall.jl](https://github.com/JuliaInterop/RCall.jl) package to plot using ggplot2 in R.
+
+- [Gadfly.jl](https://github.com/GiovineItalia/Gadfly.jl)
+    - Julia equivalent of `ggplot2` in R
+    
+- [PyPlot.jl](https://github.com/JuliaPy/PyPlot.jl)
+    - Wrapper for Python's matplotlib
 
 ## Gadfly.jl
 
