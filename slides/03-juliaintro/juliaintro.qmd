@@ -56,7 +56,7 @@ using LinearAlgebra, Profile, SparseArrays
   - Project started in 2009. First public release in 2012 
   - Creators: Jeff Bezanson, Alan Edelman, Stefan Karpinski, Viral Shah
   - First major release v1.0 was released on Aug 8, 2018
-  - Current stable release v1.7.2
+  - Current stable release v1.8.5 (as of Apr 6, 2023)
 
 * Aim to solve the notorious **two language problem**: Prototype code goes into high-level languages like R/Python, production code goes into low-level language like C/C++. 
 
@@ -81,7 +81,7 @@ See <https://julialang.org/benchmarks/> for the details of benchmark.
 2. Cheat sheet: [The Fast Track to Julia](https://juliadocs.github.io/Julia-Cheat-Sheet/).  
 
 3. Browse the Julia [documentation](https://docs.julialang.org/en).  
-
+bm
 4. For Matlab users, read [Noteworthy Differences From Matlab](https://docs.julialang.org/en/v1/manual/noteworthy-differences/#Noteworthy-differences-from-MATLAB-1).  
 
     For R users, read [Noteworthy Differences From R](https://docs.julialang.org/en/v1/manual/noteworthy-differences/#Noteworthy-differences-from-R-1).  
@@ -205,16 +205,19 @@ All functions, not only exported functions, are always available like this.
 * There are also `PyCall.jl`, `MATLAB.jl`, `JavaCall.jl`, `CxxWrap.jl` packages for interfacing with other languages.
 
 ```{julia}
+# x is in Julia workspace
 x = randn(1000)
+
 # $ is the interpolation operator
 R"""
 hist($x, main = "I'm plotting a Julia vector")
-"""
+""";
 ```
 
 ```{julia}
 R"""
 library(ggplot2)
+
 qplot($x)
 """
 ```
@@ -253,7 +256,7 @@ R> r <- 2
 Julia> @rget r
 ```
 
-* If you want to call Julia within R, check out the [`JuliaCall`](https://www.rdocumentation.org/packages/JuliaCall/) package.
+* If you want to call Julia within R, check out the [`JuliaCall`](https://non-contradiction.github.io/JuliaCall//index.html) package.
 
 ## Some basic Julia code
 
@@ -997,7 +1000,7 @@ For integer input `x`, LLVM compiler is smart enough to know `x + x` is simply s
 
 ## Profiling Julia code
 
-Julia has several built-in tools for profiling. The `@time` marco outputs run time and heap allocation.
+Julia has several built-in tools for profiling. The `@time` marco outputs run time and heap allocation. Note the first call of a function incurs (substantial) compilation time.
 
 ```{julia}
 # a function defined earlier
@@ -1010,7 +1013,7 @@ function tally(x::Array)
 end
 
 using Random
-Random.seed!(123)
+Random.seed!(257)
 a = rand(20_000_000)
 @time tally(a) # first run: include compile time
 ```
