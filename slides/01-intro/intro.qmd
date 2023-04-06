@@ -214,7 +214,7 @@ bm1 = @benchmark ((inv($X' * diagm($w) * $X) * $X') * diagm($w)) * $z
 bm1
 ```
 
-Several unwise choices of algorithms waste lots of flops. The memeory allocations, caused by intermediate results, also slow down the program because of the need for garbage collection. This is a common mistake a beginner programmer in a high-level language makes. For example, the following R code (same algorithm on the same data) shows similar allocation. R code is much slower than Julia maybe because of the outdated BLAS/LAPACK library being used. 
+Several unwise choices of algorithms waste lots of flops. The memeory allocations, caused by intermediate results, also slow down the program because of the need for garbage collection. This is a common mistake a beginner programmer in a high-level language makes. For example, the following R code (same algorithm on the same data) shows similar allocation. R code is much slower than Julia possibly because of the outdated BLAS/LAPACK library being used. 
 
 ```{julia}
 using RCall
@@ -233,7 +233,7 @@ rbm <- bench::mark(
   iterations = 10
   ) %>% 
   print(width = Inf)
-"""
+""";
 ```
 
 ### Method 2
