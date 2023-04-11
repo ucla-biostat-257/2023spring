@@ -73,8 +73,8 @@ Pkg.status()
 
 * There are many implementations of BLAS. 
     - [Netlib](http://www.netlib.org/blas/) provides a reference implementation.  
-    - Matlab uses Intel's [MKL](https://software.intel.com/en-us/node/520724) (mathematical kernel libaries). **MKL implementation is the gold standard on market.** It is not open source but the compiled library is free for Linux and MacOS.    
-    - Julia uses [OpenBLAS](https://github.com/xianyi/OpenBLAS). **OpenBLAS is the best open source implementation**.    
+    - Matlab uses Intel's [MKL](https://www.intel.com/content/www/us/en/docs/oneapi/programming-guide/2023-0/intel-oneapi-math-kernel-library-onemkl.html) (mathematical kernel libaries). **MKL implementation is the gold standard on market.** It is not open source but the compiled library is free for Linux and MacOS. However, not surprisingly, it only works on Intel CPUs.      
+    - Julia uses [OpenBLAS](https://github.com/xianyi/OpenBLAS). **OpenBLAS is the best cross-platform, open source implementation**. With the [MKL.jl](https://github.com/JuliaLinearAlgebra/MKL.jl) package, it's also very easy to use MKL in Julia.    
 
 * There are 3 levels of BLAS functions.
     - [Level 1](http://www.netlib.org/blas/#_level_1): vector-vector operation
@@ -115,7 +115,7 @@ where $\mathbf{W}$ is a diagonal matrix with observation weights on diagonal.
 ```{julia}
 using BenchmarkTools, LinearAlgebra, Random
 
-Random.seed!(123) # seed
+Random.seed!(257) # seed
 n = 2000
 A = rand(n, n) # n-by-n matrix
 d = rand(n)  # n vector
@@ -139,9 +139,19 @@ Dfull = diagm(d) # convert to full matrix
 ```
 
 ```{julia}
+# Or we can use broadcasting (with recycling)
+@benchmark $A .* $d
+```
+
+```{julia}
 # in-place: avoid allocate space for result
-# rmul!: compute matrix-matrix product AB, overwriting A, and return the result.
+# rmul!: compute matrix-matrix product A*B, overwriting A, and return the result.
 @benchmark rmul!($A, $D)
+```
+
+```{julia}
+# In-place broadcasting 
+@benchmark $A .= $A .* $d
 ```
 
 **Note:** In R or Matlab, `diag(d)` will create a full matrix. Be cautious using `diag` function: do we really need a full diagonal matrix?
@@ -262,7 +272,7 @@ d = zeros(eltype(A), size(A, 2))
 
    Source: <https://gist.github.com/jboner/2841832>  
 
-- In Julia, we can query the CPU memory hierarchy by the `Hwloc.jl` package.
+- In Julia, we can query the CPU topology by the `Hwloc.jl` package.
 
 ```{julia}
 using Hwloc
