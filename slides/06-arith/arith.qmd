@@ -350,8 +350,14 @@ println("Half precision:")
 - Exponent $e_{\min}-1$ (exponent bits all 0) with a zero mantissa represents the real number 0.  
 
 ```{julia}
-@show bitstring(0.0); # 0 in double precision 
+@show bitstring(0.0); # +0 in double precision 
 ```
+
+```{julia}
+@show bitstring(-0.0); # -0 in double precision
+```
+
+There are some special rules in IEEE 754 for [signed zeros](https://en.wikipedia.org/wiki/Signed_zero).
 
 - Exponent $e_{\min}-1$ (exponent bits all 0) with a nonzero mantissa are for numbers less than $b^{e_{\min}}$.  
     Numbers are _denormalized_ in the range $(0,b^{e_{\min}})$ -- **graceful underflow**. 
@@ -363,8 +369,8 @@ println("Half precision:")
 
 ### Rounding
 
-* Rounding is necessary whenever a number has more than $p$ significand bits. Most computer systems use the default IEEE 754 _round to nearest_ mode (also called _ties to even_ mode). Julia offers several [rounding modes](https://docs.julialang.org/en/v1/base/math/#Base.Rounding.RoundingMode), the default being [`RoundNearest`](https://docs.julialang.org/en/v1/base/math/#Base.Rounding.RoundNearest). For example, the number 0.1 in decimal system cannot be represented accurately as a floating point number:
-$$ 0.1 = 1.10011001... \times 2^{-4} $$
+* Rounding is necessary whenever a number has more than $p$ significand bits. Most computer systems use the default IEEE 754 **round to nearest** mode (also called **ties to even** mode). Julia offers several [rounding modes](https://docs.julialang.org/en/v1/base/math/#Base.Rounding.RoundingMode), the default being [`RoundNearest`](https://docs.julialang.org/en/v1/base/math/#Base.Rounding.RoundNearest). For example, the number 0.1 in decimal system cannot be represented accurately as a floating point number:
+$$ 0.1 = 1.\underbrace{1001}_\text{repeat}\underbrace{1001}... \times 2^{-4} $$
 
 ```{julia}
 # half precision Float16, ...110(011...) rounds down to 110
@@ -496,7 +502,7 @@ b = 1.2345677f0
 
 ### Algebraic laws
 
-Floating-point numbers may violate many algebraic laws we are familiar with, such associative and distributive laws. See Homework 1 problems.
+Floating-point numbers may violate many algebraic laws we are familiar with, such as the associative and distributive laws. See Homework 1 problems.
 
 ## Further reading
 
