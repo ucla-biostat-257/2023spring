@@ -21,9 +21,9 @@ jupyter:
       format_version: '1.0'
       jupytext_version: 1.14.5
   kernelspec:
-    display_name: Julia 1.8.5
+    display_name: Julia (8 threads) 1.8.5
     language: julia
-    name: julia-1.8
+    name: julia-_8-threads_-1.8
 ---
 
 System information (for reproducibility):
@@ -53,7 +53,7 @@ Pkg.status()
     - singular value decompositions $\mathbf{A} = \mathbf{U} \Sigma \mathbf{V}^T$  
     - iterative methods for numerical linear algebra    
 
-* Except for the iterative methods, most of these numerical linear algebra tasks are implemented in the BLAS and LAPACK libraries. They form the **building blocks** of most statistical computing tasks (optimization, MCMC).
+* Except for the iterative methods, most of these numerical linear algebra tasks are implemented in the **BLAS** and **LAPACK** libraries. They form the **building blocks** of most statistical computing tasks (optimization, MCMC).
 
 * Our major **goal** (or learning objectives) is to  
     1. know the complexity (flop count) of each task
@@ -62,7 +62,7 @@ Pkg.status()
     4. understand the need for iterative methods  
     5. apply appropriate numerical algebra tools to various statistical problems 
 
-* All high-level languages (R, Matlab, Julia) call BLAS and LAPACK for numerical linear algebra. 
+* All high-level languages (Julia, Matlab, Python, R) call BLAS and LAPACK for numerical linear algebra. 
     - Julia offers more flexibility by exposing interfaces to many BLAS/LAPACK subroutines directly. See [documentation](https://docs.julialang.org/en/v1/stdlib/LinearAlgebra/#BLAS-functions-1).
 
 ## BLAS
@@ -123,7 +123,7 @@ D = Diagonal(d) # diagonal matrix with d as diagonal
 ```
 
 ```{julia}
-Dfull = convert(Matrix, D) # convert to full matrix
+Dfull = diagm(d) # convert to full matrix
 ```
 
 ```{julia}
@@ -182,7 +182,7 @@ A, B = randn(n, n), randn(n, n)
 @benchmark tr(transpose($A) * $B)
 ```
 
-But $\text{trace}(\mathbf{A}^T \mathbf{B}) = <\text{vec}(\mathbf{A}), \text{vec}(\mathbf{B})>$. The latter is level-2 operation with $O(mn)$ flops.
+But $\text{trace}(\mathbf{A}^T \mathbf{B}) = <\text{vec}(\mathbf{A}), \text{vec}(\mathbf{B})>$. The latter is level-1 BLAS operation with $O(mn)$ flops.
 
 ```{julia}
 # smarter way to evaluate tr(A'B)
@@ -201,7 +201,7 @@ But $\text{trace}(\mathbf{A}^T \mathbf{B}) = <\text{vec}(\mathbf{A}), \text{vec}
 @benchmark Diagonal(vec(sum($A .* $B, dims=1)))
 ```
 
-To get rid of allocation of intermediate array at all, we can just write a double loop or use `dot` function.
+To get rid of allocation of intermediate arrays at all, we can just write a double loop or use `dot` function.
 
 ```{julia}
 using LoopVectorization
@@ -210,12 +210,9 @@ function diag_matmul!(d, A, B)
     m, n = size(A)
     @assert size(B) == (m, n) "A and B should have same size"
     fill!(d, 0)
-    @avx for j in 1:n, i in 1:m
+    @turbo for j in 1:n, i in 1:m
         d[j] += A[i, j] * B[i, j]
     end
-#     for j in 1:n
-#         @views d[j] = dot(A[:, j], B[:, j])
-#     end
     Diagonal(d)
 end
 
@@ -265,6 +262,14 @@ d = zeros(eltype(A), size(A, 2))
 
    Source: <https://gist.github.com/jboner/2841832>  
 
+- In Julia, we can query the CPU memory hierarchy by the `Hwloc.jl` package.
+
+```{julia}
+using Hwloc
+
+topology_graphical()
+```
+
 * For example, Xeon X5650 CPU has a theoretical throughput of 128 DP GFLOPS but a max memory bandwidth of 32GB/s.  
 
 * Can we keep CPU cores busy with enough deliveries of matrix data and ship the results to memory fast enough to avoid backlog?  
@@ -299,6 +304,13 @@ See [Dongarra slides](https://www.samsi.info/wp-content/uploads/2017/02/SAMSI-02
 
 <img src="https://patterns.eecs.berkeley.edu/wordpress/wp-content/uploads/2013/04/dense02.png" width="500" align="center"/>
 
+* In Julia, we can query the cache line size by `Hwloc.
+
+```{julia}
+# Apple Silicon (M1/M2 chips) don't have L3 cache
+Hwloc.cachelinesize()
+```
+
 * Accessing column-major stored matrix by rows ($ij$ looping) causes lots of **cache misses**.
 
 * Take matrix multiplication as an example 
@@ -306,27 +318,34 @@ $$
 \mathbf{C} \gets \mathbf{C} + \mathbf{A} \mathbf{B}, \quad \mathbf{A} \in \mathbb{R}^{m \times p}, \mathbf{B} \in \mathbb{R}^{p \times n}, \mathbf{C} \in \mathbb{R}^{m \times n}.
 $$
 Assume the storage is column-major, such as in Julia. There are 6 variants of the algorithms according to the order in the triple loops. 
+
     - `jki` or `kji` looping:
-        ```julia
-        # inner most loop
-        for i = 1:m
-            C[i, j] = C[i, j] + A[i, k] * B[k, j]
-        end
-        ```  
+    
+```julia
+# inner most loop
+for i in 1:m
+    C[i, j] = C[i, j] + A[i, k] * B[k, j]
+end
+```
+        
     - `ikj` or `kij` looping:
-        ```julia
-        # inner most loop        
-        for j = 1:n
-            C[i, j] = C[i, j] + A[i, k] * B[k, j]
-        end
-        ```  
-    - `ijk` or `jik` looping:
-        ```julia
-        # inner most loop        
-        for k = 1:p
-            C[i, j] = C[i, j] + A[i, k] * B[k, j]
-        end
-        ```
+
+```julia
+# inner most loop        
+for j in 1:n
+    C[i, j] = C[i, j] + A[i, k] * B[k, j]
+end
+```  
+
+- `ijk` or `jik` looping:
+
+```julia
+# inner most loop        
+for k in 1:p
+    C[i, j] = C[i, j] + A[i, k] * B[k, j]
+end
+```
+        
 * We pay attention to the innermost loop, where the vector calculation occurs. The associated **stride** when accessing the three matrices in memory (assuming column-major storage) is  
 
 | Variant        | A Stride | B Stride | C Stride |
@@ -428,7 +447,7 @@ using BenchmarkTools
 @benchmark matmul_by_loop!($A, $B, $C, "ijk")
 ```
 
-* Julia wraps BLAS library for matrix multiplication. We see BLAS library wins hands down (multi-threading, Strassen algorithm, higher level-3 fraction by block outer product).
+* **Question: Can our loop beat BLAS?** Julia wraps BLAS library for matrix multiplication. We see BLAS library wins hands down (multi-threading, Strassen algorithm, higher level-3 fraction by block outer product).
 
 ```{julia}
 @benchmark mul!($C, $A, $B)
@@ -439,11 +458,13 @@ using BenchmarkTools
 @benchmark LinearAlgebra.BLAS.gemm!('N', 'N', 1.0, $A, $B, 0.0, $C)
 ```
 
-**Exercise:** Annotate the loop in `matmul_by_loop!` by `@avx` and benchmark again. 
+**Question (again): Can our loop beat BLAS?**
+
+**Exercise:** Annotate the loop in `matmul_by_loop!` by `@turbo` and `@tturbo` (multi-threading) and benchmark again.
 
 ## BLAS in R
 
-* **Tip for R user**. Standard R distribution from CRAN uses a very out-dated BLAS/LAPACK library.
+* **Tip for R users**. Standard R distribution from CRAN uses a very out-dated BLAS/LAPACK library.
 
 ```{julia}
 using RCall
@@ -574,6 +595,8 @@ Z = zeros(size(X)) # zero matrix of same size as X
 @benchmark $Z .= max.(abs.($X), abs.($Y)) # .= (vs =) is important!
 ```
 
+**Exercise:** Annotate the broadcasting by `@turbo` and `@tturbo` (multi-threading) and benchmark again.
+
 3. [View](https://docs.julialang.org/en/v1/base/arrays/#Views-(SubArrays-and-other-view-types)-1) avoids creating extra copy of matrix data.
 
 ```{julia}
@@ -586,6 +609,7 @@ A = randn(1000, 1000)
 
 ```{julia}
 # view avoids creating a separate sub-matrix
+# unfortunately it's much slower possibly because of cache misses
 @benchmark sum(@view $A[1:2:500, 1:2:500])
 ```
 
