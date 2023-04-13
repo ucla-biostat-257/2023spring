@@ -62,13 +62,13 @@ There are multiple paradigms to program GPU in Julia, depending on the specific 
 
 - **CUDA** is an ecosystem exclusively for Nvidia GPUs. There are extensive CUDA libraries for scientific computing: CuBLAS, CuRAND, CuSparse, CuSolve, CuDNN, ...
 
-  The [CUDA.jl](https://github.com/JuliaGPU/CUDA.jl) package allows defining arrays on Nvidia GPUs and overloads many common operations.
+  The [CUDA.jl](https://github.com/JuliaGPU/CUDA.jl) package allows defining arrays on **Nvidia GPUs** and overloads many common operations.
 
-- The [AMDGPU.jl](https://github.com/JuliaGPU/AMDGPU.jl) package allows defining arrays on AMD GPUs and overloads many common operations.
+- The [AMDGPU.jl](https://github.com/JuliaGPU/AMDGPU.jl) package allows defining arrays on **AMD GPUs** and overloads many common operations.
 
-- The [Metal.jl](https://github.com/JuliaGPU/Metal.jl) package allows defining arrays on Apple Silicon and overloads many common operations.
+- The [Metal.jl](https://github.com/JuliaGPU/Metal.jl) package allows defining arrays on **Apple Silicon** and overloads many common operations.
 
-- The [oneAPI.jl](https://github.com/JuliaGPU/oneAPI.jl) package allows defining arrays on Intel GPUs and overloads many common operations.
+- The [oneAPI.jl](https://github.com/JuliaGPU/oneAPI.jl) package allows defining arrays on **Intel GPUs** and overloads many common operations.
 
 I'll illustrate using Metal.jl on my MacBook Pro running MacOS Ventura 13.2.1. It has Apple M2 chip with 38 GPU cores.
 
@@ -120,7 +120,7 @@ x = collect(xd)
 using BenchmarkTools, LinearAlgebra, Random
 
 Random.seed!(257)
-n = 1024
+n = 2^14
 # on CPU
 x = rand(Float32, n, n)
 y = rand(Float32, n, n)
@@ -133,6 +133,8 @@ zd = MtlArray(z)
 # SP matrix multiplication on GPU
 bm_gpu = @benchmark Metal.@sync mul!($zd, $xd, $yd)
 ```
+
+We see GPU (this problem size on this machine) achieves a staggering **9 TGLOPS** throughput with single precision!
 
 ```{julia}
 # SP throughput on GPU
@@ -149,7 +151,7 @@ bm_cpu = @benchmark mul!($z, $x, $y)
 (2n^3) / (minimum(bm_cpu.times) / 1e9)
 ```
 
-We see ~10x speedup by GPUs in this matrix multiplication example.
+We see >10x speedup by GPUs in this matrix multiplication example.
 
 ```{julia}
 # cholesky on Gram matrix
@@ -186,4 +188,4 @@ bm_cpu
 median(bm_cpu.times) / median(bm_gpu.times)
 ```
 
-GPU brings great speedup (>20x) to the massive evaluation of elementary math functions.
+GPU brings great speedup (>50x) to the massive evaluation of elementary math functions.
