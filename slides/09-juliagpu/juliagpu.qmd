@@ -134,7 +134,7 @@ zd = MtlArray(z)
 bm_gpu = @benchmark Metal.@sync mul!($zd, $xd, $yd)
 ```
 
-We see GPU (this problem size on this machine) achieves a staggering **9 TGLOPS** throughput with single precision!
+For this problem size on this machine, we see GPU achieves a staggering **9 TFLOPS** throughput with single precision!
 
 ```{julia}
 # SP throughput on GPU
