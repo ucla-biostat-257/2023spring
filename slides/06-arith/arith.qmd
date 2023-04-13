@@ -350,10 +350,7 @@ println("Half precision:")
 - Exponent $e_{\min}-1$ (exponent bits all 0) with a zero mantissa represents the real number 0.  
 
 ```{julia}
-@show bitstring(0.0); # +0 in double precision 
-```
-
-```{julia}
+@show bitstring(0.0) # +0 in double precision 
 @show bitstring(-0.0); # -0 in double precision
 ```
 
@@ -391,7 +388,7 @@ For a number with mantissa ending with ...001(100..., all 0 digits after), it's 
 
 - **Half precision**: range $\pm 10^{\pm 4}$ with precision up to 3 decimal digits.
 
-- The floating-point numbers do not occur uniformly over the real number line. Each magnitude has same number of representible numbers
+- The floating-point numbers do not occur uniformly over the real number line. Each magnitude has same number of representible numbers, except those around 0 (graceful underflow).
 
     <img src="http://www.volkerschatz.com/science/pics/fltscale-wh.png" width="700" align="center"/>
         
