@@ -21,33 +21,36 @@ jupyter:
       format_version: '1.0'
       jupytext_version: 1.14.5
   kernelspec:
-    display_name: Julia 1.8.5
+    display_name: Julia (8 threads) 1.8.5
     language: julia
-    name: julia-1.8
+    name: julia-_8-threads_-1.8
 ---
 
-This session introduces GPU computing in Julia.
+This lecture introduces GPU computing in Julia.
 
 ## GPGPU
 
-GPUs are ubiquitous in modern computers. Following are GPUs today's typical computer systems.
+GPUs are ubiquitous in modern computers. Following are NVIDIA GPUs on today's typical computer systems.
 
-| NVIDIA GPUs         | Tesla K80                            | GTX 1080                                 | GT 650M                              |
+| NVIDIA GPUs         | H100 PCIe                           | RTX 6000                                 | RTX 5000                              |
 |---------------------|----------------------------------------|-----------------------------------------|--------------------------------------|
-|                     | ![Tesla M2090](nvidia_k80.jpg) | ![GTX 580](nvidia_gtx1080.jpg)    | ![GT 650M](nvidia_gt650m.jpg) |
+|                     | ![H100](nvidia_h100.png) | ![RTX 6000](nvidia_rtx6000.png)    | ![RTX 5000](nvidia_rtx5000.png) |
 | Computers           | servers, cluster                       | desktop                                 | laptop                               |
 |                     | ![Server](gpu_server.jpg)       | ![Desktop](alienware-area51.png) | ![Laptop](macpro_inside.png)  |
 | Main usage          | scientific computing                   | daily work, gaming                      | daily work                           |
-| Memory              | 24 GB                                    | 8 GB                                   | 1GB                                  |
-| Memory bandwidth    | 480 GB/sec                              | 320 GB/sec                               | 80GB/sec                             |
-| Number of cores     | 4992                                    | 2560                                     | 384                                  |
-| Processor clock     | 562 MHz                                 | 1.6 GHz                                  | 0.9GHz                               |
-| Peak DP performance | 2.91 TFLOPS                              | 257 GFLOPS                                        |                                      |
-| Peak SP performance | 8.73 TFLOPS                            | 8228 GFLOPS                              | 691Gflops                            |
+| Memory              | 80 GB                                    | 48 GB                                   | 16 GB                                  |
+| Memory bandwidth    | 2 TB/sec                              | 960 GB/sec                               | 576 GB/sec                             |
+| Number of cores     | ???                                    | ???                                     | ???                                  |
+| Processor clock     | ??? GHz                                 | ??? GHz                                  | ??? GHz                               |
+| Peak DP performance | 26 TFLOPS                              | ??? TFLOPS                                        |                                    ??? TFLOPS  |
+| Peak SP performance | 51 TFLOPS                            | 91.1 TFLOPS                              | 42.6 TFLOPS                            |
 
-GPU architecture vs CPU architecture.  
-* GPUs contain 100s of processing cores on a single card; several cards can fit in a desktop PC  
+## GPU architecture vs CPU architecture
+
+* GPUs contain 1000s of processing cores on a single card; several cards can fit in a desktop PC  
+
 * Each core carries out the same operations in parallel on different input data -- single program, multiple data (SPMD) paradigm  
+
 * Extremely high arithmetic intensity *if* one can transfer the data onto and results off of the processors quickly
 
 | ![i7 die](cpu_i7_die.png) | ![Fermi die](Fermi_Die.png) |
@@ -70,7 +73,7 @@ There are multiple paradigms to program GPU in Julia, depending on the specific 
 
 - The [oneAPI.jl](https://github.com/JuliaGPU/oneAPI.jl) package allows defining arrays on **Intel GPUs** and overloads many common operations.
 
-I'll illustrate using Metal.jl on my MacBook Pro running MacOS Ventura 13.2.1. It has Apple M2 chip with 38 GPU cores.
+I'll illustrate using Metal.jl on my MacBook Pro running MacOS Ventura 13.3.1. It has Apple M2 chip with 38 GPU cores.
 
 ```{julia}
 versioninfo()
@@ -97,7 +100,7 @@ Metal.versioninfo()
 ## Transfer data between main memory and GPU
 
 ```{julia}
-# generate data on CPU
+# generate SP data on CPU
 x = rand(Float32, 3, 3)
 # transfer data form CPU to GPU
 xd = MtlArray(x)
@@ -128,8 +131,48 @@ z = zeros(Float32, n, n)
 # on GPU
 xd = MtlArray(x)
 yd = MtlArray(y)
-zd = MtlArray(z)
+zd = MtlArray(z);
+```
 
+### Dot product
+
+```{julia}
+# SP matrix dot product on GPU: tr(X'Y)
+# why are there allocations?
+bm_gpu = @benchmark Metal.@sync dot($xd, $yd)
+```
+
+```{julia}
+# SP matrix dot product on CPU: tr(X'Y)
+bm_cpu = @benchmark dot($x, $y)
+```
+
+```{julia}
+# speedup
+median(bm_cpu.times) / median(bm_gpu.times)
+```
+
+### Broadcast
+
+```{julia}
+# SP broadcast on GPU: z .= x .* y
+# why is there allocation?
+bm_gpu = @benchmark Metal.@sync $zd .= $xd .* $yd
+```
+
+```{julia}
+# SP broadcast on CPU: z .= x .* y
+bm_cpu = @benchmark $z .= $x .* $y
+```
+
+```{julia}
+# speedup
+median(bm_cpu.times) / median(bm_gpu.times)
+```
+
+### Matrix multiplication
+
+```{julia}
 # SP matrix multiplication on GPU
 bm_gpu = @benchmark Metal.@sync mul!($zd, $xd, $yd)
 ```
@@ -167,7 +210,7 @@ We see >10x speedup by GPUs in this matrix multiplication example.
 
 GPU speedup of Cholesky seems unavailable at the moment.
 
-## Elementiwise operations on GPU
+## Evaluation of elementary and special functions on GPU
 
 ```{julia}
 # elementwise function on GPU arrays
