@@ -140,7 +140,7 @@ Dfull = diagm(d) # convert to full matrix
 
 ```{julia}
 # Or we can use broadcasting (with recycling)
-@benchmark $A .* $d
+@benchmark $A .* transpose($d)
 ```
 
 ```{julia}
@@ -151,7 +151,7 @@ Dfull = diagm(d) # convert to full matrix
 
 ```{julia}
 # In-place broadcasting 
-@benchmark $A .= $A .* $d
+@benchmark $A .= $A .* transpose($d)
 ```
 
 **Exercise**: Try `@turbo` (SIMD) and `@tturbo` (SIMD) from LoopVectorization.jl package.
@@ -190,14 +190,14 @@ Random.seed!(123)
 n = 2000
 A, B = randn(n, n), randn(n, n)
 
-# slow way to evaluate tr(A'B)
+# slow way to evaluate tr(A'B): 2mn^2 flops
 @benchmark tr(transpose($A) * $B)
 ```
 
 But $\text{trace}(\mathbf{A}^T \mathbf{B}) = <\text{vec}(\mathbf{A}), \text{vec}(\mathbf{B})>$. The latter is level-1 BLAS operation with $O(mn)$ flops.
 
 ```{julia}
-# smarter way to evaluate tr(A'B)
+# smarter way to evaluate tr(A'B): 2mn flops
 @benchmark dot($A, $B)
 ```
 
@@ -210,7 +210,7 @@ But $\text{trace}(\mathbf{A}^T \mathbf{B}) = <\text{vec}(\mathbf{A}), \text{vec}
 
 ```{julia}
 # smarter way to evaluate diag(A'B): O(n^2)
-@benchmark Diagonal(vec(sum($A .* $B, dims=1)))
+@benchmark Diagonal(vec(sum($A .* $B, dims = 1)))
 ```
 
 To get rid of allocation of intermediate arrays at all, we can just write a double loop or use `dot` function.
@@ -266,9 +266,10 @@ Answer: use **high-level BLAS** as much as possible.
 | Level 3: $\mathbf{C} \gets \mathbf{C} + \mathbf{A} \mathbf{B}$ | $\mathbf{A}, \mathbf{B}, \mathbf{C} \in\mathbb{R}^{n \times n}$                    | $4n^2$     | $2n^3$ | 2:n |  
 
 * Higher level BLAS (3 or 2) make more effective use of arithmetic logic units (ALU) by keeping them busy. **Surface-to-volume** effect.  
-See [Dongarra slides](https://www.samsi.info/wp-content/uploads/2017/02/SAMSI-0217_Dongarra.pdf).
 
 <img src="./blas_throughput.png" width="500" align="center"/>
+
+Source: [Jack Dongarra's slides](https://raw.githubusercontent.com/ucla-biostat-257/2023spring/master/readings/SAMSI-0217_Dongarra.pdf).
 
 * A distinction between LAPACK and LINPACK (older version of R uses LINPACK) is that LAPACK makes use of higher level BLAS as much as possible (usually by smart partitioning) to increase the so-called **level-3 fraction**.
 
@@ -288,7 +289,7 @@ See [Dongarra slides](https://www.samsi.info/wp-content/uploads/2017/02/SAMSI-02
 
 <img src="https://patterns.eecs.berkeley.edu/wordpress/wp-content/uploads/2013/04/dense02.png" width="500" align="center"/>
 
-* In Julia, we can query the cache line size by `Hwloc.
+* In Julia, we can query the cache line size by Hwloc.jl.
 
 ```{julia}
 # Apple Silicon (M1/M2 chips) don't have L3 cache
@@ -495,6 +496,15 @@ t(A) %*% x
 will first transpose `A` then perform matrix multiplication, causing unnecessary memory allocation
 
 ```{julia}
+using Random, LinearAlgebra, BenchmarkTools
+Random.seed!(123)
+
+n = 1000
+A = rand(n, n)
+x = rand(n);
+```
+
+```{julia}
 R"""
 A <- $A
 x <- $x
@@ -504,15 +514,6 @@ bench::mark(t(A) %*% x) %>%
 ```
 
 Julia is avoids transposing matrix whenever possible. The `Transpose` type only creates a view of the transpose of matrix data.
-
-```{julia}
-using Random, LinearAlgebra, BenchmarkTools
-Random.seed!(123)
-
-n = 1000
-A = rand(n, n)
-x = rand(n);
-```
 
 ```{julia}
 typeof(transpose(A))
