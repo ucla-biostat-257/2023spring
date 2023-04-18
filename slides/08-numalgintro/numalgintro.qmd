@@ -154,6 +154,8 @@ Dfull = diagm(d) # convert to full matrix
 @benchmark $A .= $A .* $d
 ```
 
+**Exercise**: Try `@turbo` (SIMD) and `@tturbo` (SIMD) from LoopVectorization.jl package.
+
 **Note:** In R or Matlab, `diag(d)` will create a full matrix. Be cautious using `diag` function: do we really need a full diagonal matrix?
 
 ```{julia}
@@ -214,13 +216,11 @@ But $\text{trace}(\mathbf{A}^T \mathbf{B}) = <\text{vec}(\mathbf{A}), \text{vec}
 To get rid of allocation of intermediate arrays at all, we can just write a double loop or use `dot` function.
 
 ```{julia}
-using LoopVectorization
-
 function diag_matmul!(d, A, B)
     m, n = size(A)
     @assert size(B) == (m, n) "A and B should have same size"
     fill!(d, 0)
-    @turbo for j in 1:n, i in 1:m
+    for j in 1:n, i in 1:m
         d[j] += A[i, j] * B[i, j]
     end
     Diagonal(d)
@@ -230,49 +230,23 @@ d = zeros(eltype(A), size(A, 2))
 @benchmark diag_matmul!($d, $A, $B)
 ```
 
+**Exercise**: Try `@turbo` (SIMD) and `@tturbo` (SIMD) from LoopVectorization.jl package.
+
 ## Memory hierarchy and level-3 fraction
 
 > **Key to high performance is effective use of memory hierarchy. True on all architectures.**
 
 * Flop count is not the sole determinant of algorithm efficiency. Another important factor is data movement through the memory hierarchy.
 
-<img src="./macpro_inside.png" width="400" align="center">
+<img src="./cpu_die.png" width="400" align="center">
 
-<img src="./cpu_die.png" width="400" align="center">  
+<img src="./macpro_inside.png" width="400" align="center">  
 
-<img src="./hei.png" width="400" align="center">
+<img src="./cache_speed.png" width="600" align="center">
 
-* Numbers everyone should know
+Source: <https://cs.brown.edu/courses/csci1310/2020/assign/labs/lab4.html>
 
-| Operation                           | Time           |
-|-------------------------------------|----------------|
-| L1 cache reference                  | 0.5 ns         |
-| L2 cache reference                  | 7 ns           |
-| Main memory reference               | 100 ns         |
-| Read 1 MB sequentially from memory  | 250,000 ns     |
-| Read 1 MB sequentially from SSD     | 1,000,000 ns   |  
-| Read 1 MB sequentially from disk    | 20,000,000 ns  |
-
-
-<!-- | Operation                           | Time           | -->
-<!-- |-------------------------------------|----------------| -->
-<!-- | L1 cache reference                  | 0.5 ns         | -->
-<!-- | Branch mispredict                   | 5 ns           | -->
-<!-- | L2 cache reference                  | 7 ns           | -->
-<!-- | Mutex lock/unlock                   | 100 ns         | -->
-<!-- | Main memory reference               | 100 ns         | -->
-<!-- | Compress 1K bytes with Zippy        | 10,000 ns      | -->
-<!-- | Send 2K bytes over 1 Gbps network   | 20,000 ns      | -->
-<!-- | Read 1 MB sequentially from memory  | 250,000 ns     | -->
-<!-- | Round trip within same datacenter   | 500,000 ns     | -->
-<!-- | Disk seek                           | 10,000,000 ns  | -->
-<!-- | Read 1 MB sequentially from network | 10,000,000 ns  | -->
-<!-- | Read 1 MB sequentially from disk    | 30,000,000 ns  | -->
-<!-- | Send packet CA->Netherlands->CA     | 150,000,000 ns | -->
-
-   Source: <https://gist.github.com/jboner/2841832>  
-
-- In Julia, we can query the CPU topology by the `Hwloc.jl` package.
+- In Julia, we can query the CPU topology by the `Hwloc.jl` package. For example, this laptop runs an Apple M2 Max chip with 4 efficiency cores and 8 performance cores.
 
 ```{julia}
 using Hwloc
@@ -512,13 +486,24 @@ timeit(f)
 
 ## Avoid memory allocation: some examples
 
-1. Transposing matrix is an expensive memory operation.  
-    - In R, the command 
-        ```R
-        t(A) %*% x
-        ```
-    will first transpose `A` then perform matrix multiplication, causing unnecessary memory allocation
-    - Julia is smart to avoid transposing matrix if possible.
+### Transposing matrix is an expensive memory operation
+
+In R, the command 
+```R
+t(A) %*% x
+```
+will first transpose `A` then perform matrix multiplication, causing unnecessary memory allocation
+
+```{julia}
+R"""
+A <- $A
+x <- $x
+bench::mark(t(A) %*% x) %>%
+  print(width = Inf)
+""";
+```
+
+Julia is avoids transposing matrix whenever possible. The `Transpose` type only creates a view of the transpose of matrix data.
 
 ```{julia}
 using Random, LinearAlgebra, BenchmarkTools
@@ -559,18 +544,11 @@ out = zeros(size(A, 2))
 @benchmark LinearAlgebra.BLAS.gemv!('T', 1.0, $A, $x, 0.0, $out)
 ```
 
-```{julia}
-R"""
-A <- $A
-x <- $x
-bench::mark(t(A) %*% x) %>%
-  print(width = Inf)
-""";
-```
+### Broadcast (dot operation) fuses loops and avoids memory allocation
 
-2. [Broadcasting](https://docs.julialang.org/en/v1/base/arrays/#Broadcast-and-vectorization-1) in Julia achieves vectorized code without creating intermediate arrays.
+[Broadcasting](https://docs.julialang.org/en/v1/base/arrays/#Broadcast-and-vectorization-1) in Julia achieves vectorized code without creating intermediate arrays.
 
-    Suppose we want to calculate elementsize maximum of absolute values of two large arrays. In R or Matlab, the command
+Suppose we want to calculate elementsize maximum of absolute values of two large arrays. In R or Matlab, the command
 ```r
 max(abs(X), abs(Y))
 ```
@@ -607,7 +585,9 @@ Z = zeros(size(X)) # zero matrix of same size as X
 
 **Exercise:** Annotate the broadcasting by `@turbo` and `@tturbo` (multi-threading) and benchmark again.
 
-3. [View](https://docs.julialang.org/en/v1/base/arrays/#Views-(SubArrays-and-other-view-types)-1) avoids creating extra copy of matrix data.
+### Views
+
+[View](https://docs.julialang.org/en/v1/base/arrays/#Views-(SubArrays-and-other-view-types)-1) avoids creating extra copy of matrix data.
 
 ```{julia}
 Random.seed!(123)
@@ -628,3 +608,5 @@ The [`@views`](https://docs.julialang.org/en/v1/base/arrays/#Base.@views) macro,
 ```{julia}
 @benchmark @views sum($A[1:2:500, 1:2:500])
 ```
+
+**Exercise:** Here we saw that, although we avoids memory allocation, the actual run times are longer. Why? 
