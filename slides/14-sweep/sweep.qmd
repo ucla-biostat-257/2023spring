@@ -1,0 +1,180 @@
+---
+title: Sweep Operator
+subtitle: Biostat/Biomath M257
+author: Dr. Hua Zhou @ UCLA
+date: today
+format:
+  html:
+    theme: cosmo
+    embed-resources: true
+    number-sections: true
+    toc: true
+    toc-depth: 4
+    toc-location: left
+    code-fold: false
+jupyter:
+  jupytext:
+    formats: 'ipynb,qmd'
+    text_representation:
+      extension: .qmd
+      format_name: quarto
+      format_version: '1.0'
+      jupytext_version: 1.14.5
+  kernelspec:
+    display_name: Julia (8 threads) 1.8.5
+    language: julia
+    name: julia-_8-threads_-1.8
+---
+
+System information (for reproducibility):
+
+```{julia}
+versioninfo()
+```
+
+Load packages:
+
+```{julia}
+using Pkg
+
+Pkg.activate(pwd())
+Pkg.instantiate()
+Pkg.status()
+```
+
+## Definition
+
+* We learnt Cholesky decomposition and QR decomposition approaches for solving linear regression.
+
+* The popular statistical software SAS uses sweep operator for linear regression and matrix inversion.
+
+* Assume $\mathbf{A}$ is symmetric and positive semidefinite.
+
+* **Sweep** on the $k$-th diagonal entry $a_{kk} \ne 0$ yields $\widehat A$ with entries
+$$
+\begin{eqnarray*}
+	\widehat a_{kk} &=& - \frac{1}{a_{kk}} \\
+	\widehat a_{ik} &=& \frac{a_{ik}}{a_{kk}} \\
+	\widehat a_{kj} &=& \frac{a_{kj}}{a_{kk}} \\
+	\widehat a_{ij} &=& a_{ij} - \frac{a_{ik} a_{kj}}{a_{kk}}, \quad i \ne k, j \ne k.
+\end{eqnarray*}
+$$
+$n^2$ flops (taking into account of symmetry).
+
+* **Inverse sweep** sends $\mathbf{A}$ to $\check A$ with entries
+$$
+\begin{eqnarray*}
+	\check a_{kk} &=& - \frac{1}{a_{kk}} \\
+	\check a_{ik} &=& - \frac{a_{ik}}{a_{kk}} \\
+	\check a_{kj} &=& - \frac{a_{kj}}{a_{kk}} \\
+	\check a_{ij} &=& a_{ij} - \frac{a_{ik}a_{kj}}{a_{kk}}, \quad i \ne k, j \ne k.
+\end{eqnarray*}
+$$
+$n^2$ flops (taking into account of symmetry).
+
+* $\check{\hat{\mathbf{A}}} = \mathbf{A}$.
+
+* Successively sweeping all diagonal entries of $\mathbf{A}$ yields $- \mathbf{A}^{-1}$.
+
+* Exercise: invert a $2 \times 2$ matrix, say 
+$$
+\mathbf{A} = \begin{pmatrix} 4 & 3 \\ 3  & 2 \end{pmatrix},
+$$
+on paper using sweep operator.
+
+* **Block form of sweep**: Let the symmetric matrix $\mathbf{A}$ be partitioned as 
+$$
+    \mathbf{A} = \begin{pmatrix} \mathbf{A}_{11} & \mathbf{A}_{12} \\ \mathbf{A}_{21} & \mathbf{A}_{22} \end{pmatrix}.
+$$
+If possible, sweep on the diagonal entries of $\mathbf{A}_{11}$ yields  
+$$
+	\begin{pmatrix} 
+    \, - \mathbf{A}_{11}^{-1} & \mathbf{A}_{11}^{-1} \mathbf{A}_{12} \\
+	\mathbf{A}_{21} \mathbf{A}_{11}^{-1} & \mathbf{A}_{22} - \mathbf{A}_{21} \mathbf{A}_{11}^{-1} \mathbf{A}_{12}
+	\end{pmatrix}.
+$$  
+Order dose **not** matter. The block $\mathbf{A}_{22} - \mathbf{A}_{21} \mathbf{A}_{11}^{-1} \mathbf{A}_{12}$ is recognized as the **Schur complement** of $\mathbf{A}_{11}$.
+
+* Pd and determinant: $\mathbf{A}$ is pd if and only if each diagonal entry can be swept in succession and is positive until it is swept. When a diagonal entry of a pd matrix $\mathbf{A}$ is swept, it becomes negative and remains negative thereafter. Taking the product of diagonal entries just before each is swept yields the determinant of $\mathbf{A}$. 
+
+## Applications
+
+### Linear regression (as done in SAS)
+
+Sweep on the diagonal entries 1 to $p$ of the (augmented) Gram matrix 
+$$
+\begin{pmatrix} \mathbf{X}, \mathbf{y} \end{pmatrix}^T \begin{pmatrix} \mathbf{X}, \mathbf{y} \end{pmatrix} = \begin{pmatrix} 
+    \mathbf{X}^T \mathbf{X} & \mathbf{X}^T \mathbf{y} \\ 
+    \mathbf{y}^T \mathbf{X} & \mathbf{y}^T \mathbf{y} 
+\end{pmatrix}
+$$  
+yields  
+$$
+\begin{eqnarray*}
+\begin{pmatrix}
+\, - (\mathbf{X}^T \mathbf{X})^{-1} & (\mathbf{X}^T \mathbf{X})^{-1} \mathbf{X}^T \mathbf{y} \\
+\mathbf{y}^T \mathbf{X} (\mathbf{X}^T \mathbf{X})^{-1} & \mathbf{y}^T \mathbf{y} - \mathbf{y}^T \mathbf{X} (\mathbf{X}^T \mathbf{X})^{-1} \mathbf{X}^T \mathbf{y}
+\end{pmatrix} = 
+\begin{pmatrix}
+\, - \sigma^{-2} \text{Var}(\widehat{\beta}) & \widehat{\beta} \\
+\widehat{\beta}^T & \|\mathbf{y} - \widehat{\mathbf{y}}\|_2^2
+\end{pmatrix}.
+\end{eqnarray*}
+$$  
+In total $np^2 + p^3$ flops.
+
+### Invert a matrix _in place_
+
+$n^3$ flops. Recall that inversion by Cholesky costs $(1/3)n^3 + (4/3) n^3 = (5/3) n^3$ flops: `potrf` and `potri`.
+
+### Conditional multivariate normal density calculation
+
+### Stepwise regression
+
+### MANOVA
+
+## Implementation
+
+* [SweepOperator.jl](https://github.com/joshday/SweepOperator.jl) package (by Josh Day) implements the sweep operator.
+
+```{julia}
+using SweepOperator
+
+A = [9. 2 -2; 2 1 0; -2 0 4]
+```
+
+```{julia}
+B = copy(A)
+sweep!(B, 1) # sweep (1, 1) entry
+```
+
+```{julia}
+sweep!(B, 2) # sweep (2, 2) entry
+```
+
+```{julia}
+sweep!(B, 3) # sweep (3, 3) entry, we are left with -inv(B)
+```
+
+```{julia}
+# check correctness
+inv(A)
+```
+
+```{julia}
+using LinearAlgebra
+
+# sweep! function only changes the upper triangular part
+UpperTriangular(inv(A)) ≈ UpperTriangular(- B)
+```
+
+```{julia}
+# inverse sweep to bring negative inverse back to original matrix
+sweep!(B, 1:3, true)
+```
+
+## Further reading
+
+* Section 7.4-7.6 of [Numerical Analysis for Statisticians](http://ucla.worldcat.org/title/numerical-analysis-for-statisticians/oclc/793808354&referer=brief_results) by Kenneth Lange (2010). Probably the best place to read about sweep operator.
+
+* The paper [A tutorial on the SWEEP operator](http://www.jstor.org/stable/2683825) by James H. Goodnight (1979). Note this version (anti-symmetry matrix) is slightly different from ours. 
