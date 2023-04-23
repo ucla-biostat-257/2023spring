@@ -1,0 +1,258 @@
+---
+title: Condition Number
+subtitle: Biostat/Biomath M257
+author: Dr. Hua Zhou @ UCLA
+date: today
+format:
+  html:
+    theme: cosmo
+    embed-resources: true
+    number-sections: true
+    toc: true
+    toc-depth: 4
+    toc-location: left
+    code-fold: false
+jupyter:
+  jupytext:
+    formats: 'ipynb,qmd'
+    text_representation:
+      extension: .qmd
+      format_name: quarto
+      format_version: '1.0'
+      jupytext_version: 1.14.5
+  kernelspec:
+    display_name: Julia (8 threads) 1.8.5
+    language: julia
+    name: julia-_8-threads_-1.8
+---
+
+System information (for reproducibility):
+
+```{julia}
+versioninfo()
+```
+
+Load packages:
+
+```{julia}
+using Pkg
+
+Pkg.activate(pwd())
+Pkg.instantiate()
+Pkg.status()
+```
+
+* Assume $\mathbf{A} \in \mathbb{R}^{n \times n}$ is nonsingular and consider the system of linear equation 
+$$
+\mathbf{A} \mathbf{x} = \mathbf{b}.
+$$
+The solution is 
+$$
+\mathbf{x} = \mathbf{A}^{-1}  \mathbf{b}.
+$$
+We want to know how the solution changes with a small perturbation of the input $\mathbf{b}$ (or $\mathbf{A}$).
+
+* Let 
+$$
+\mathbf{b}_{\text{new}} = \mathbf{b} + \Delta \mathbf{b}.
+$$
+Then 
+$$
+\mathbf{x}_{\text{new}} = \mathbf{A}^{-1} (\mathbf{b} + \Delta \mathbf{b}) = \mathbf{x} + \Delta \mathbf{x}.
+$$
+Thus 
+$$
+\|\Delta \mathbf{x}\| = \|\mathbf{A}^{-1} \Delta \mathbf{b}\| \le \|\mathbf{A}^{-1}\| \|\Delta \mathbf{b}\|.
+$$
+Because $\mathbf{b} = \mathbf{A} \mathbf{x}$, 
+$$
+\frac{1}{\|\mathbf{x}\|} \le \|\mathbf{A}\| \frac{1}{\|\mathbf{b}\|}.
+$$
+This results 
+$$
+\frac{ \|\Delta \mathbf{x}\|}{\|\mathbf{x}\|} \le \|\mathbf{A}\|\|\mathbf{A}^{-1}\| \frac{\|\Delta \mathbf{b}\|}{\|\mathbf{b}\|}.
+$$
+
+* $\kappa(\mathbf{A}) = \|\mathbf{A}\| \|\mathbf{A}^{-1}\|$ is called the **condition number for linear equation**. It depends on the matrix norm being used.  
+    * $\kappa_p$ means condition number defined from matrix-$p$ norm.
+
+* Large condition number means "bad".
+
+* Some facts:  
+$$
+\begin{eqnarray*}
+\kappa(\mathbf{A}) &=& \kappa(\mathbf{A}^{-1})	\\
+\kappa(c\mathbf{A}) &=& \kappa(\mathbf{A})	\\
+\kappa(\mathbf{A}) &\ge& 1	\\
+%\kappa_1(\mathbf{A}) &=& \kappa_\infty (\mathbf{A}^T)	\\
+\kappa_2 (\mathbf{A}) &=& \kappa_2 (\mathbf{A}^T) = \frac{\sigma_1(\mathbf{A})}{\sigma_n(\mathbf{A})}	\\
+\kappa_2(\mathbf{A}^T \mathbf{A}) &=& \frac{\lambda_1(\mathbf{A}^T \mathbf{A})}{\lambda_n(\mathbf{A}^T \mathbf{A})} =  \kappa_2^2(\mathbf{A}) \ge \kappa_2(\mathbf{A}).
+\end{eqnarray*}
+$$
+The last fact says that the condition number of $\mathbf{A}^T \mathbf{A}$ can be much larger than that of $\mathbf{A}$.
+
+* The smallest singular value $\sigma_n$ indicates the _distance to the trouble_.
+
+* **Condition number for the least squares problem** is more complicated. Roughly speaking, 
+    - the method based on normal equation (Cholesky, sweep) has a condition depending on $[\kappa_2(\mathbf{X})]^2$ 
+    - QR for a _small residuals_ least squares problem has a condition depending on $\kappa_2(\mathbf{X})$
+    
+* Consider the simple case
+$$
+\begin{eqnarray*}
+	\mathbf{X} = \begin{pmatrix}
+	1 & 1 \\
+	10^{-3} & 0 \\
+	0 & 10^{-3}
+	\end{pmatrix}.
+\end{eqnarray*}
+$$
+Forming normal equation yields a singular Gramian matrix
+$$
+\begin{eqnarray*}
+	\mathbf{X}^T \mathbf{X} = \begin{pmatrix}
+	1 & 1 \\
+	1 & 1
+	\end{pmatrix}
+\end{eqnarray*}
+$$
+if executed with a precision of 6 decimal digits.
+
+## Implementation
+
+* Julia function [`cond`](https://docs.julialang.org/en/v1/stdlib/LinearAlgebra/#LinearAlgebra.cond) computes $\kappa_p$ for $p=1$, 2 (default), or $\infty$.
+
+* Julia function [`condskeel`](https://docs.julialang.org/en/v1/stdlib/LinearAlgebra/#LinearAlgebra.condskeel) computes the Skeel condition number.
+
+## Longley example
+
+The [Longley (1967)](https://www.jstor.org/stable/2283673?seq=1#page_scan_tab_contents) macroeconomic data set is a famous test example for numerical software in early days.
+
+```{julia}
+using DelimitedFiles, LinearAlgebra, StatsBase, StatsPlots
+
+longley = readdlm("longley.txt")
+```
+
+```{julia}
+gr()
+
+corrplot(longley, 
+    label = ["Employ" "Price" "GNP" "Jobless" "Military" "PopSize" "Year"])
+```
+
+```{julia}
+# response: Employment
+y = longley[:, 1]
+# predictor matrix
+X = [ones(length(y)) longley[:, 2:end]]
+```
+
+```{julia}
+# Julia function for obtaining condition number
+cond(X)
+```
+
+```{julia}
+# we see the smallest singular value (aka trouble number) is very small
+xsvals = svdvals(X)
+```
+
+```{julia}
+# condition number of the design matrix
+xcond = maximum(xsvals) / minimum(xsvals)
+```
+
+```{julia}
+# X is full rank from SVD
+xrksvd = rank(X)
+```
+
+```{julia}
+# least squares from QR
+X \ y
+```
+
+```{julia}
+# Gram matrix
+G = X'X
+```
+
+```{julia}
+# rank of Gram matrix from SVD
+# rank deficient! We lost precision when forming Gram matrix
+rank(G)
+```
+
+```{julia}
+svdvals(G)
+```
+
+```{julia}
+# rank of Gram matrix from cholesky
+# full!
+gchol = cholesky(Symmetric(G), Val(true))
+rank(gchol)
+```
+
+```{julia}
+# least squares solution from Cholesky matches those from QR
+gchol \ (X'y)
+```
+
+* Now let us re-run above example using **single precision**. (Pretend we are in the 60s-70s.)
+
+```{julia}
+Xsp = Float32.(X)
+ysp = Float32.(y)
+
+# least squares by QR: dramatically different from Float64 solution
+Xsp \ ysp
+```
+
+```{julia}
+# least squares by Cholesky: failed
+G = Xsp'Xsp
+gchol = cholesky(Symmetric(G), Val(true), check=false)
+gchol \ (Xsp'ysp)
+```
+
+```{julia}
+rank(Xsp)
+```
+
+```{julia}
+# rank of Gram matrix by Cholesky
+rank(gchol)
+```
+
+```{julia}
+# rank of Gram matrix by SVD
+rank(G)
+```
+
+* **Standardizing the predictors** improves the condition.
+
+```{julia}
+# center and standardize matrix along dimension 1
+Xcs = zscore(X[:, 2:end], 1)
+Xcs = [ones(length(y)) Xcs]
+```
+
+```{julia}
+cond(Xcs)
+```
+
+```{julia}
+rank(Xcs)
+```
+
+```{julia}
+rank(Xcs'Xcs)
+```
+
+## Further reading
+
+* Chapter 6 of [Numerical Analysis for Statisticians](http://ucla.worldcat.org/title/numerical-analysis-for-statisticians/oclc/793808354&referer=brief_results) of Kenneth Lange (2010).
+
+* Section 2.6 of [Matrix Computation](http://catalog.library.ucla.edu/vwebv/holdingsInfo?bibId=7122088) by Gene Golub and Charles Van Loan (2013).
