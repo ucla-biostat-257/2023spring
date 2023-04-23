@@ -1,0 +1,124 @@
+---
+title: Summary of linear regression
+subtitle: Biostat/Biomath M257
+author: Dr. Hua Zhou @ UCLA
+date: today
+format:
+  html:
+    theme: cosmo
+    embed-resources: true
+    number-sections: true
+    toc: true
+    toc-depth: 4
+    toc-location: left
+    code-fold: false
+jupyter:
+  jupytext:
+    formats: 'ipynb,qmd'
+    text_representation:
+      extension: .qmd
+      format_name: quarto
+      format_version: '1.0'
+      jupytext_version: 1.14.5
+  kernelspec:
+    display_name: Julia (8 threads) 1.8.5
+    language: julia
+    name: julia-_8-threads_-1.8
+---
+
+System information (for reproducibility):
+
+```{julia}
+versioninfo()
+```
+
+Load packages:
+
+```{julia}
+using Pkg
+
+Pkg.activate(pwd())
+Pkg.instantiate()
+Pkg.status()
+```
+
+## Comparing methods for linear regression
+
+Methods for solving linear regression $\widehat \beta = (\mathbf{X}^T \mathbf{X})^{-1} \mathbf{X}^T \mathbf{y}$:
+
+| Method            | Flops                  | Remarks                 | Software | Stability   |
+| :---------------: | :--------------------: | :---------------------: | :------: | :---------: |
+| Sweep             | $np^2 + p^3$           | $(X^TX)^{-1}$ available | SAS      | less stable |
+| Cholesky          | $np^2 + p^3/3$         |                         |          | less stable |
+| QR by Householder | $2np^2 - (2/3)p^3$     |                         | R        | stable      |
+| QR by MGS         | $2np^2$                | $Q_1$ available         |          | stable      | 
+| QR by SVD         | $4n^2p + 8np^2 + 9p^3$ | $X = UDV^T$             |          | most stable |  
+
+Remarks:
+
+1. When $n \gg p$, sweep and Cholesky are twice faster than QR and need less space.  
+2. Sweep and Cholesky are based on the **Gram matrix** $\mathbf{X}^T \mathbf{X}$, which can be dynamically updated with incoming data. They can handle huge $n$, moderate $p$ data sets that cannot fit into memory.  
+3. QR methods are more stable and produce numerically more accurate solution.  
+4. Although sweep is slower than Cholesky, it yields standard errors and so on.  
+5. MGS appears slower than Householder, but it yields $\mathbf{Q}_1$.
+
+> **There is simply no such thing as a universal 'gold standard' when it comes to algorithms.**
+
+## Benchmark
+
+```{julia}
+using SweepOperator, BenchmarkTools, LinearAlgebra
+
+linreg_cholesky(y::Vector, X::Matrix) = cholesky!(X'X) \ (X'y)
+
+linreg_qr(y::Vector, X::Matrix) = X \ y
+
+function linreg_sweep(y::Vector, X::Matrix)
+    p = size(X, 2)
+    xy = [X y]
+    tableau = xy'xy
+    sweep!(tableau, 1:p)
+    return tableau[1:p, end]
+end
+
+function linreg_svd(y::Vector, X::Matrix)
+    xsvd = svd(X)
+    return xsvd.V * ((xsvd.U'y) ./ xsvd.S)
+end
+```
+
+```{julia}
+using Random
+
+Random.seed!(123) # seed
+
+n, p = 10, 3
+X = randn(n, p)
+y = randn(n)
+
+# check these methods give same answer
+@show linreg_cholesky(y, X)
+@show linreg_qr(y, X)
+@show linreg_sweep(y, X)
+@show linreg_svd(y, X);
+```
+
+```{julia}
+n, p = 1000, 300
+X = randn(n, p)
+y = randn(n)
+
+@benchmark linreg_cholesky(y, X)
+```
+
+```{julia}
+@benchmark linreg_sweep(y, X)
+```
+
+```{julia}
+@benchmark linreg_qr(y, X)
+```
+
+```{julia}
+@benchmark linreg_svd(y, X)
+```
