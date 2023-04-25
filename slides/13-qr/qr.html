@@ -2717,7 +2717,7 @@ Environment:
 <div class="cell" data-tags="[]" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Random</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="bu">Random</span>.<span class="fu">seed!</span>(<span class="fl">123</span>) <span class="co"># seed</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="bu">Random</span>.<span class="fu">seed!</span>(<span class="fl">257</span>) <span class="co"># seed</span></span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>n, p <span class="op">=</span> <span class="fl">5</span>, <span class="fl">3</span></span>
 <span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> <span class="fu">randn</span>(n, p) <span class="co"># predictor matrix</span></span>
@@ -2783,7 +2783,7 @@ Environment:
 <li>Initialize <span class="math inline">\(\mathbf{q}_1 = \mathbf{x}_1 / \|\mathbf{x}_1\|_2\)</span></li>
 <li>For <span class="math inline">\(k=2, \ldots, p\)</span>, <span class="math display">\[
 \begin{eqnarray*}
-  \mathbf{v}_k &amp;=&amp; \mathbf{x}_k - \mathbf{P}_{{\cal C}\{\mathbf{q}_1,\ldots,\mathbf{q}_{k-1}\}} \mathbf{x}_k = \mathbf{x}_k -  \sum_{j=1}^{k-1} \langle \mathbf{x}_k, \mathbf{q}_j \rangle \cdot \mathbf{q}_j \\
+  \mathbf{v}_k &amp;=&amp; \mathbf{x}_k - \mathbf{P}_{\mathcal{C} \{\mathbf{q}_1,\ldots,\mathbf{q}_{k-1}\}} \mathbf{x}_k = \mathbf{x}_k -  \sum_{j=1}^{k-1} \langle \mathbf{x}_k, \mathbf{q}_j \rangle \cdot \mathbf{q}_j \\
   \mathbf{q}_k &amp;=&amp; \mathbf{v}_k / \|\mathbf{v}_k\|_2
 \end{eqnarray*}
 \]</span></li>
