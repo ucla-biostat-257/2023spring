@@ -74,8 +74,8 @@ $$
 $$
 where  
     - $\mathbf{Q} \in \mathbb{R}^{n \times n}$, $\mathbf{Q}^T \mathbf{Q} = \mathbf{I}_n$. In other words, $\mathbf{Q}$ is an orthogonal matrix.  
-        - First $p$ columns of $\mathbf{Q}$ form an orthonormal basis of ${\cal C}(\mathbf{X})$ (**column space** of $\mathbf{X}$)      
-        - Last $n-p$ columns of $\mathbf{Q}$ form an orthonormal basis of ${\cal N}(\mathbf{X}^T)$ (**null space** of $\mathbf{X}^T$)
+        - First $p$ columns of $\mathbf{Q}$ form an orthonormal basis of $\mathcal{C}(\mathbf{X})$ (**column space** of $\mathbf{X}$)      
+        - Last $n-p$ columns of $\mathbf{Q}$ form an orthonormal basis of $\mathcal{N}(\mathbf{X}^T)$ (**null space** of $\mathbf{X}^T$)
     - $\mathbf{R} \in \mathbb{R}^{n \times p}$  is upper triangular with positive diagonal entries.  
     
 * **Skinny (or thin) QR decomposition**:
@@ -242,7 +242,7 @@ for any orthogonal matrix $\mathbf{Q}$.
 ```{julia}
 using Random, LinearAlgebra
 
-Random.seed!(123) # seed
+Random.seed!(257) # seed
 
 y = randn(5)    # response vector
 X = randn(5, 3) # predictor matrix
@@ -353,4 +353,4 @@ costing $6n$ flops.
 
 * Section II.5.3 of [Computational Statistics](http://ucla.worldcat.org/title/computational-statistics/oclc/437345409&referer=brief_results) by James Gentle (2010).
 
-* Chapter 5 of [Matrix Computation](http://catalog.library.ucla.edu/vwebv/holdingsInfo?bibId=7122088) by Gene Golub and Charles Van Loan (2013).
+* Chapter 5 of [Matrix Computation](https://search.library.ucla.edu/permalink/01UCS_LAL/17p22dp/alma9971220883606533) by Gene Golub and Charles Van Loan (2013).
