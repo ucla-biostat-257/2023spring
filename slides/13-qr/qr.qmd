@@ -194,7 +194,7 @@ $$
 $$
 	\mathbf{H} \mathbf{X} = \mathbf{X} - 2 \mathbf{u} (\mathbf{u}^T \mathbf{X})
 $$
-costs $4np$ flops. **Householder updates never entails explicit formation of the Householder matrices.**
+costs $4np$ flops. **Householder updates never entail explicit formation of the Householder matrices.**
 
 * Note applying ${\tilde H}_j$ to $\mathbf{X}$ only needs $4(n-j+1)(p-j+1)$ flops.
 

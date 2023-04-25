@@ -2727,9 +2727,9 @@ Environment:
 <span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>X <span class="op">\</span> y</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="3">
 <pre><code>3-element Vector{Float64}:
- -1.281337076095265
- -0.6456446387704803
- -1.3538593626451274</code></pre>
+ 0.327531097773397
+ 0.26321470081611203
+ 0.9829498789610566</code></pre>
 </div>
 </div>
 <p>We want to understand what is QR and how it is used to solve least squares problem.</p>
@@ -2838,7 +2838,7 @@ Environment:
 \]</span></p></li>
 <li><p>Applying a Householder transform <span class="math inline">\(\mathbf{H} = \mathbf{I} - 2 \mathbf{u} \mathbf{u}^T\)</span> to a matrix <span class="math inline">\(\mathbf{X} \in \mathbb{R}^{n \times p}\)</span> <span class="math display">\[
   \mathbf{H} \mathbf{X} = \mathbf{X} - 2 \mathbf{u} (\mathbf{u}^T \mathbf{X})
-\]</span> costs <span class="math inline">\(4np\)</span> flops. <strong>Householder updates never entails explicit formation of the Householder matrices.</strong></p></li>
+\]</span> costs <span class="math inline">\(4np\)</span> flops. <strong>Householder updates never entail explicit formation of the Householder matrices.</strong></p></li>
 <li><p>Note applying <span class="math inline">\({\tilde H}_j\)</span> to <span class="math inline">\(\mathbf{X}\)</span> only needs <span class="math inline">\(4(n-j+1)(p-j+1)\)</span> flops.</p></li>
 <li><p>QR by Householder: <span class="math inline">\(\mathbf{H}_{p} \cdots \mathbf{H}_1 \mathbf{X} = \begin{pmatrix} \mathbf{R}_1 \\ \mathbf{0} \end{pmatrix}\)</span>.</p></li>
 <li><p>The process is done in place. Upper triangular part of <span class="math inline">\(\mathbf{X}\)</span> is overwritten by <span class="math inline">\(\mathbf{R}_1\)</span> and the essential Householder vectors (<span class="math inline">\(\tilde u_{j1}\)</span> is normalized to 1) are stored in <span class="math inline">\(\mathbf{X}[j:n,j]\)</span>.</p></li>
