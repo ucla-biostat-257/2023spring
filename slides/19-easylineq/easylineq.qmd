@@ -1,0 +1,404 @@
+---
+title: A list of "easy" linear systems
+subtitle: Biostat/Biomath M257
+author: Dr. Hua Zhou @ UCLA
+date: today
+format:
+  html:
+    theme: cosmo
+    embed-resources: true
+    number-sections: true
+    toc: true
+    toc-depth: 4
+    toc-location: left
+    code-fold: false
+jupyter:
+  jupytext:
+    formats: 'ipynb,qmd'
+    text_representation:
+      extension: .qmd
+      format_name: quarto
+      format_version: '1.0'
+      jupytext_version: 1.14.5
+  kernelspec:
+    display_name: Julia (8 threads) 1.8.5
+    language: julia
+    name: julia-_8-threads_-1.8
+---
+
+System information (for reproducibility):
+
+```{julia}
+versioninfo()
+```
+
+Load packages:
+
+```{julia}
+using Pkg
+
+Pkg.activate(pwd())
+Pkg.instantiate()
+Pkg.status()
+```
+
+# Introduction
+
+Consider $\mathbf{A} \mathbf{x} = \mathbf{b}$, $\mathbf{A} \in \mathbb{R}^{n \times n}$. Or, consider matrix inverse (if you want). $\mathbf{A}$ can be huge. Keep massive data in mind: 1000 Genome Project, NetFlix, Google PageRank, finance, spatial statistics, ... We should be alert to many easy linear systems. 
+
+Don't blindly use `A \ b` and `inv` in Julia or `solve` function in R. **Don't waste computing resources by bad choices of algorithms!**
+
+## Diagonal matrix
+
+Diagonal $\mathbf{A}$: $n$ flops. Use `Diagonal` type of Julia.
+
+```{julia}
+using BenchmarkTools, LinearAlgebra, Random
+
+# generate random data
+Random.seed!(123)
+n = 1000
+A = diagm(0 => randn(n)) # a diagonal matrix stored as Matrix{Float64}
+b = randn(n);
+```
+
+```{julia}
+# should give link to the source code
+@which A \ b
+```
+
+```{julia}
+# check `istril(A)` and `istriu(A)` (O(n^2)), then call `Diagonal(A) \ b` (O(n))
+@benchmark $A \ $b
+```
+
+```{julia}
+# O(n) computation, no extra array allocation
+@benchmark Diagonal($A) \ $b
+```
+
+## Bidiagonal, tridiagonal, and banded matrices
+
+Bidiagonal, tridiagonal, or banded $\mathbf{A}$: Band LU, band Cholesky, ... roughly $O(n)$ flops.   
+* Use [`Bidiagonal`](https://docs.julialang.org/en/v1/stdlib/LinearAlgebra/#LinearAlgebra.Bidiagonal), [`Tridiagonal`](https://docs.julialang.org/en/v1/stdlib/LinearAlgebra/#LinearAlgebra.Tridiagonal), [`SymTridiagonal`](https://docs.julialang.org/en/v1/stdlib/LinearAlgebra/#LinearAlgebra.SymTridiagonal) types of Julia.
+
+```{julia}
+Random.seed!(123) 
+
+n  = 1000
+dv = randn(n)
+ev = randn(n - 1)
+b  = randn(n) # rhs
+# symmetric tridiagonal matrix
+A  = SymTridiagonal(dv, ev)
+```
+
+```{julia}
+# convert to a full matrix
+Afull = Matrix(A)
+
+# LU decomposition (2/3) n^3 flops!
+@benchmark $Afull \ $b
+```
+
+```{julia}
+# specialized algorithm for tridiagonal matrix, O(n) flops
+@benchmark $A \ $b
+```
+
+## Triangular matrix
+
+Triangular $\mathbf{A}$: $n^2$ flops to solve linear system.
+
+```{julia}
+Random.seed!(123)
+
+n = 1000
+A = tril(randn(n, n)) # a lower-triangular matrix stored as Matrix{Float64}
+b = randn(n)
+
+# check istril() then triangular solve
+@benchmark $A \ $b
+```
+
+```{julia}
+# triangular solve directly; save the cost of istril()
+@benchmark LowerTriangular($A) \ $b
+```
+
+## Block diagonal matrix
+
+Block diagonal: Suppose $n = \sum_b n_b$. For linear equations, $(\sum_b n_b)^3$ (without using block diagonal structure) vs $\sum_b n_b^3$ (using block diagonal structure).  
+
+Julia has a [`blockdiag`](https://docs.julialang.org/en/v1/stdlib/SparseArrays/#SparseArrays.blockdiag) function that generates a **sparse** matrix. **Anyone interested writing a `BlockDiagonal.jl` package?**
+
+```{julia}
+using SparseArrays
+
+Random.seed!(123)
+
+B  = 10 # number of blocks
+ni = 100
+A  = blockdiag([sprandn(ni, ni, 0.01) for b in 1:B]...)
+```
+
+```{julia}
+using UnicodePlots
+spy(A)
+```
+
+## Kronecker product
+
+Use
+$$
+\begin{eqnarray*}
+    (\mathbf{A} \otimes \mathbf{B})^{-1} &=& \mathbf{A}^{-1} \otimes \mathbf{B}^{-1} \\
+    (\mathbf{C}^T \otimes \mathbf{A}) \text{vec}(\mathbf{B}) &=& \text{vec}(\mathbf{A} \mathbf{B} \mathbf{C}) \\
+    \text{det}(\mathbf{A} \otimes \mathbf{B}) &=& [\text{det}(\mathbf{A})]^p [\text{det}(\mathbf{B})]^m, \quad \mathbf{A} \in \mathbb{R}^{m \times m}, \mathbf{B} \in \mathbb{R}^{p \times p}
+\end{eqnarray*}    
+$$
+to avoid forming and doing costly computation on the potentially huge Kronecker $\mathbf{A} \otimes \mathbf{B}$.
+
+**Anyone interested writing a package?**
+
+```{julia}
+using MatrixDepot, LinearAlgebra
+
+A = matrixdepot("lehmer", 50) # a pd matrix
+```
+
+```{julia}
+B = matrixdepot("oscillate", 100) # pd matrix
+```
+
+```{julia}
+M = kron(A, B)
+c = ones(size(M, 2)) # rhs
+# Method 1: form Kronecker product and Cholesky solve
+x1 = cholesky(Symmetric(M)) \ c;
+```
+
+```{julia}
+# Method 2: use (A ⊗ B)^{-1} = A^{-1} ⊗ B^{-1}
+m, p = size(A, 1), size(B, 1)
+x2 = vec(transpose(cholesky(Symmetric(A)) \ 
+    transpose(cholesky(Symmetric(B)) \ reshape(c, p, m))));
+```
+
+```{julia}
+# relative error
+norm(x1 - x2) / norm(x1)
+```
+
+```{julia}
+using BenchmarkTools
+
+# Method 1: form Kronecker and Cholesky solve
+@benchmark cholesky(Symmetric(kron($A, $B))) \ c
+```
+
+```{julia}
+# Method 2: use (A ⊗ B)^{-1} = A^{-1} ⊗ B^{-1}
+@benchmark vec(transpose(cholesky(Symmetric($A)) \ 
+    transpose(cholesky(Symmetric($B)) \ reshape($c, p, m))))
+```
+
+## Sparse matrix
+
+Sparsity: sparse matrix decomposition or iterative method.  
+* The easiest recognizable structure. Familiarize yourself with the sparse matrix computation tools in Julia, Matlab, R (`Matrix` package), MKL (sparse BLAS), ... as much as possible.
+
+```{julia}
+using MatrixDepot
+
+Random.seed!(123)
+
+# a 7701-by-7701 sparse pd matrix
+A = matrixdepot("wathen", 50)
+# random generated rhs
+b = randn(size(A, 1))
+Afull = Matrix(A)
+count(!iszero, A) / length(A) # sparsity
+```
+
+```{julia}
+using UnicodePlots
+spy(A)
+```
+
+### Matrix-vector multiplication
+
+```{julia}
+# dense matrix-vector multiplication
+@benchmark $Afull * $b
+```
+
+```{julia}
+# sparse matrix-vector multiplication
+@benchmark $A * $b
+```
+
+### Solve linear equation
+
+```{julia}
+# solve via dense Cholesky
+xchol = cholesky(Symmetric(Afull)) \ b
+@benchmark cholesky($(Symmetric(Afull))) \ $b
+```
+
+```{julia}
+# solve via sparse Cholesky
+xcholsp = cholesky(Symmetric(A)) \ b
+@show norm(xchol - xcholsp)
+@benchmark cholesky($(Symmetric(A))) \ $b
+```
+
+```{julia}
+# sparse solve via conjugate gradient
+using IterativeSolvers
+
+xcg = cg(A, b)
+@show norm(xcg - xchol)
+@benchmark cg($A, $b)
+```
+
+## Easy plus low rank
+
+Easy plus low rank: $\mathbf{U} \in \mathbb{R}^{n \times r}$, $\mathbf{V} \in \mathbb{R}^{r \times n}$, $r \ll n$. Woodbury formula
+\begin{eqnarray*}
+	(\mathbf{A} + \mathbf{U} \mathbf{V}^T)^{-1} &=& \mathbf{A}^{-1} - \mathbf{A}^{-1} \mathbf{U} (\mathbf{I}_r + \mathbf{V}^T \mathbf{A}^{-1} \mathbf{U})^{-1} \mathbf{V}^T \mathbf{A}^{-1} \\
+    \text{det}(\mathbf{A} + \mathbf{U} \mathbf{V}^T) &=& \text{det}(\mathbf{A}) \text{det}(\mathbf{I}_r + \mathbf{V} \mathbf{A}^{-1} \mathbf{U}^T).
+\end{eqnarray*}
+
+* Keep HW3 (multivariate density) and HW4 (PageRank) problems in mind.  
+
+* [`WoodburyMatrices.jl`](https://github.com/timholy/WoodburyMatrices.jl) package can be useful.
+
+```{julia}
+using BenchmarkTools, Random, WoodburyMatrices
+
+Random.seed!(123)
+n = 1000
+r = 5
+
+A = Diagonal(rand(n))
+B = randn(n, r)
+D = Diagonal(rand(r))
+b = randn(n)
+# Woodbury structure: W = A + B * D * B'
+W = SymWoodbury(A, B, D)
+Wfull = Matrix(W) # stored as a Matrix{Float64}
+```
+
+```{julia}
+# compares storage
+Base.summarysize(W), Base.summarysize(Wfull)
+```
+
+### Solve linear equation
+
+```{julia}
+# solve via Cholesky
+@benchmark cholesky($(Symmetric(Wfull))) \ $b
+```
+
+```{julia}
+# solve using Woodbury formula
+@benchmark $W \ reshape($b, n, 1) # hack; need to file an issue 
+```
+
+### Matrix-vector multiplication
+
+```{julia}
+# multiplication without using Woodbury structure
+@benchmark $Wfull * $b
+```
+
+```{julia}
+# multiplication using Woodbury structure
+@benchmark $W * $b
+```
+
+### Determinant
+
+```{julia}
+# determinant without using Woodbury structure
+@benchmark det($Wfull)
+```
+
+```{julia}
+# determinant using Woodbury structure
+@benchmark det($W)
+```
+
+## Easy plus border
+
+Easy plus border: For $\mathbf{A}$ pd and $\mathbf{V}$ full row rank,
+$$
+	\begin{pmatrix}
+	\mathbf{A} & \mathbf{V}^T \\
+	\mathbf{V} & \mathbf{0}
+	\end{pmatrix}^{-1} = \begin{pmatrix}
+	\mathbf{A}^{-1} - \mathbf{A}^{-1} \mathbf{V}^T (\mathbf{V} \mathbf{A}^{-1} \mathbf{V}^T)^{-1} \mathbf{V} \mathbf{A}^{-1} & \mathbf{A}^{-1} \mathbf{V}^T (\mathbf{V} \mathbf{A}^{-1} \mathbf{V}^T)^{-1} \\
+	(\mathbf{V} \mathbf{A}^{-1} \mathbf{V}^T)^{-1} \mathbf{V} \mathbf{A}^{-1} & - (\mathbf{V} \mathbf{A}^{-1} \mathbf{V}^T)^{-1}
+	\end{pmatrix}.
+$$
+**Anyone interested writing a package?**
+
+## Orthogonal matrix
+
+Orthogonal $\mathbf{A}$: $n^2$ flops **at most**. Why? Permutation matrix, Householder matrix, Jacobi matrix, ... take less.
+
+## Toeplitz matrix
+
+Toeplitz systems (constant diagonals):
+$$
+	\mathbf{T} = \begin{pmatrix}
+	r_0 & r_1 & r_2 & r_3 \\
+	r_{-1} & r_0 & r_1 & r_2 \\
+	r_{-2} & r_{-1} & r_0 & r_1 \\
+	r_{-3} & r_{-2} & r_{-1} & r_0
+	\end{pmatrix}.
+$$
+$\mathbf{T} \mathbf{x} = \mathbf{b}$, where $\mathbf{T}$ is pd and Toeplitz, can be solved in $O(n^2)$ flops. Durbin algorithm (Yule-Walker equation), Levinson algorithm (general $\mathbf{b}$), Trench algorithm (inverse). These matrices occur in auto-regressive models and econometrics.
+
+* [`ToeplitzMatrices.jl`](https://github.com/JuliaMatrices/ToeplitzMatrices.jl) package can be useful.
+
+## Circulant matrix
+
+Circulant systems: Toeplitz matrix with wraparound
+$$
+	C(\mathbf{z}) = \begin{pmatrix}
+	z_0 & z_4 & z_3 & z_2 & z_1 \\
+	z_1 & z_0 & z_4 & z_3 & z_2 \\
+	z_2 & z_1 & z_0 & z_4 & z_3 \\
+	z_3 & z_2 & z_1 & z_0 & z_4 \\
+	z_4 & z_3 & z_2 & z_1 & z_0
+	\end{pmatrix},
+$$
+FFT type algorithms: DCT (discrete cosine transform) and DST (discrete sine transform).
+
+## Vandermonde matrix
+
+Vandermonde matrix: such as in interpolation and approximation problems
+$$
+	\mathbf{V}(x_0,\ldots,x_n) = \begin{pmatrix}
+	1 & 1 & \cdots & 1 \\
+	x_0 & x_1 & \cdots & x_n \\
+	\vdots & \vdots & & \vdots \\
+	x_0^n & x_1^n & \cdots & x_n^n
+	\end{pmatrix}.
+$$
+$\mathbf{V} \mathbf{x} = \mathbf{b}$ or $\mathbf{V}^T \mathbf{x} = \mathbf{b}$ can be solved in $O(n^2)$ flops.
+
+## Cauchy-like matrix
+
+Cauchy-like matrices:
+$$
+	\Omega \mathbf{A} - \mathbf{A} \Lambda = \mathbf{R} \mathbf{S}^T,
+$$
+where $\Omega = \text{diag}(\omega_1,\ldots,\omega_n)$ and $\Lambda = \text{diag}(\lambda_1,\ldots, \lambda_n)$. $O(n)$ flops for LU and QR.
+
+## Structured-rank matrix
+
+Structured-rank problems: semiseparable matrices (LU and QR takes $O(n)$ flops), quasiseparable matrices, ...
