@@ -1,0 +1,311 @@
+---
+title: Biostat/Biomath M257 Homework 4
+subtitle: 'Due May 12 @ 11:59PM'
+author: Student Name and UID
+date: today
+format:
+  html:
+    theme: cosmo
+    embed-resources: true
+    number-sections: true
+    toc: true
+    toc-depth: 4
+    toc-location: left
+jupyter:
+  jupytext:
+    formats: 'ipynb,qmd'
+    text_representation:
+      extension: .qmd
+      format_name: quarto
+      format_version: '1.0'
+      jupytext_version: 1.14.5
+  kernelspec:
+    display_name: Julia (8 threads) 1.8.5
+    language: julia
+    name: julia-_8-threads_-1.8
+---
+
+System information (for reproducibility):
+
+```{julia}
+versioninfo()
+```
+
+Load packages:
+
+```{julia}
+using Pkg
+
+Pkg.activate(pwd())
+Pkg.instantiate()
+Pkg.status()
+```
+
+We are going to try different numerical methods learnt in class on the [Google PageRank problem](https://en.wikipedia.org/wiki/PageRank).
+
+## Q1 (5 pts) Recognize structure
+
+Let $\mathbf{A} \in \{0,1\}^{n \times n}$ be the connectivity matrix of $n$ web pages with entries
+$$
+\begin{eqnarray*}
+	a_{ij}= \begin{cases}
+	1 & \text{if page $i$ links to page $j$} \\
+	0 & \text{otherwise}
+	\end{cases}.
+\end{eqnarray*}
+$$
+$r_i = \sum_j a_{ij}$ is the out-degree of page $i$. That is $r_i$ is the number of links on page $i$. Imagine a random surfer exploring the space of $n$ pages according to the following rules.  
+
+- From a page $i$ with $r_i>0$
+    * with probability $p$, (s)he randomly chooses a link on page $i$ (uniformly) and follows that link to the next page  
+    * with probability $1-p$, (s)he randomly chooses one page from the set of all $n$ pages (uniformly) and proceeds to that page  
+- From a page $i$ with $r_i=0$ (a dangling page), (s)he randomly chooses one page from the set of all $n$ pages (uniformly) and proceeds to that page  
+    
+The process defines a Markov chain on the space of $n$ pages. Write the transition matrix $\mathbf{P}$ of the Markov chain as a sparse matrix plus rank 1 matrix.
+
+## Q2 Relate to numerical linear algebra
+
+According to standard Markov chain theory, the (random) position of the surfer converges to the stationary distribution $\mathbf{x} = (x_1,\ldots,x_n)^T$ of the Markov chain. $x_i$ has the natural interpretation of the proportion of times the surfer visits page $i$ in the long run. Therefore $\mathbf{x}$ serves as page ranks: a higher $x_i$ means page $i$ is more visited. It is well-known that $\mathbf{x}$ is the left eigenvector corresponding to the top eigenvalue 1 of the transition matrix $\mathbf{P}$. That is $\mathbf{P}^T \mathbf{x} = \mathbf{x}$. Therefore $\mathbf{x}$ can be solved as an **eigen-problem**. It can also be cast as **solving a linear system**. Since the row sums of $\mathbf{P}$ are 1, $\mathbf{P}$ is rank deficient. We can replace the first equation by the $\sum_{i=1}^n x_i = 1$.
+
+Hint: For iterative solvers, we don't need to replace the 1st equation. We can use the matrix $\mathbf{I} - \mathbf{P}^T$ directly if we start with a vector with all positive entries.
+
+## Q3 (10 pts) Explore data
+
+Obtain the connectivity matrix `A` from the `SNAP/web-Google` data in the MatrixDepot package. 
+
+```{julia}
+using MatrixDepot
+
+md = mdopen("SNAP/web-Google")
+# display documentation for the SNAP/web-Google data
+mdinfo(md)
+```
+
+```{julia}
+# connectivity matrix
+A = md.A
+```
+
+Compute summary statistics:  
+
+* How much memory does `A` take? If converted to a `Matrix{Float64}` (don't do it!), how much memory will it take?  
+
+* number of web pages
+
+* number of edges (web links)
+
+* number of dangling nodes (pages with no out links)
+
+* histogram of in-degrees  
+
+* list the top 20 pages with the largest in-degrees?  
+
+* histogram of out-degrees
+
+* which the top 20 pages with the largest out-degrees?
+
+* visualize the sparsity pattern of $\mathbf{A}$ or a submatrix of $\mathbf{A}$ say `A[1:10000, 1:10000]`. 
+
+**Hint**: For plots, you can use the [UnicodePlots.jl](https://github.com/Evizero/UnicodePlots.jl) package (`spy`, `histogram`, etc), which is fast for large data. 
+
+## Q4 (5 pts) Dense linear algebra? 
+
+Consider the following methods to obtain the page ranks of the `SNAP/web-Google` data. 
+
+1. A dense linear system solver such as LU decomposition.  
+2. A dense eigen-solver for asymmetric matrix.  
+
+For the LU approach, estimate (1) the memory usage and (2) how long it will take assuming that the LAPACK functions can achieve the theoretical throughput of your computer. 
+
+## Q5 (75 pts) Iterative solvers
+
+Set the _teleportation_ parameter at $p = 0.85$. Consider the following methods for solving the PageRank problem. 
+
+1. An iterative linear system solver such as GMRES. 
+2. An iterative eigen-solver such as Arnoldi method.
+
+For iterative methods, we have many choices in Julia. See a list of existing Julia packages for linear solvers at this [page](https://jutho.github.io/KrylovKit.jl/stable/#Package-features-and-alternatives-1). The start-up code below uses the [KrylovKit.jl](https://github.com/Jutho/KrylovKit.jl) package. You can use other packages if you prefer. Make sure to utilize the special structure of $\mathbf{P}$ (sparse + rank 1) to speed up the matrix-vector multiplication. 
+
+### Step 1 (15 pts)
+
+Let's implement a type `PageRankImPt` that mimics the matrix $\mathbf{M} = \mathbf{I} - \mathbf{P}^T$. For iterative methods, all we need to provide are methods for evaluating $\mathbf{M} \mathbf{v}$ and $\mathbf{M}^T \mathbf{v}$ for arbitrary vector $\mathbf{v}$.
+
+```{julia}
+using BenchmarkTools, LinearAlgebra, SparseArrays, Revise
+
+# a type for the matrix M = I - P^T in PageRank problem
+struct PageRankImPt{TA <: Number, IA <: Integer, T <: AbstractFloat} <: AbstractMatrix{T}
+    A         :: SparseMatrixCSC{TA, IA} # adjacency matrix
+    telep     :: T
+    # working arrays
+    # TODO: whatever intermediate arrays you may want to pre-allocate
+end
+
+# constructor
+function PageRankImPt(A::SparseMatrixCSC, telep::T) where T <: AbstractFloat
+    n = size(A, 1)
+    # TODO: initialize and pre-allocate arrays
+    PageRankImPt(A, telep)
+end
+
+LinearAlgebra.issymmetric(::PageRankImPt) = false
+Base.size(M::PageRankImPt) = size(M.A)
+# TODO: implement this function for evaluating M[i, j]
+Base.getindex(M::PageRankImPt, i, j) = M.telep
+
+# overwrite `out` by `(I - Pt) * v`
+function LinearAlgebra.mul!(
+        out :: Vector{T}, 
+        M   :: PageRankImPt{<:Number, <:Integer, T}, 
+        v   :: Vector{T}
+        ) where T <: AbstractFloat
+    # TODO: implement mul!(out, M, v)
+    sleep(1e-2) # wait 10 ms as if your code takes 1ms
+    return out
+end
+
+# overwrite `out` by `(I - P) * v`
+function LinearAlgebra.mul!(
+        out :: Vector{T}, 
+        Mt  :: Transpose{T, PageRankImPt{TA, IA, T}}, 
+        v   :: Vector{T}
+        ) where {TA<:Number, IA<:Integer, T <: AbstractFloat}
+    M = Mt.parent
+    # TODO: implement mul!(out, transpose(M), v)
+    sleep(1e-2) # wait 10 ms as if your code takes 1ms
+    out
+end
+```
+
+To check correctness. Note 
+$$
+\mathbf{M}^T \mathbf{1} = \mathbf{0}
+$$
+and
+$$
+\mathbf{M} \mathbf{x} = \mathbf{0}
+$$
+for stationary distribution $\mathbf{x}$.
+
+Download the solution file `pgrksol.csv.gz`. **Do not put this file in your Git**. You will lose points if you do. You can add a line `pgrksol.csv.gz` to your `.gitignore` file.
+
+```{julia}
+using CodecZlib, DelimitedFiles
+
+isfile("pgrksol.csv.gz") || download("https://raw.githubusercontent.com/ucla-biostat-257/2023spring/master/hw/hw4/pgrksol.csv.gz")
+xsol = open("pgrksol.csv.gz", "r") do io
+    vec(readdlm(GzipDecompressorStream(io)))
+end
+```
+
+**You will lose all 35 points (Steps 1 and 2)** if the following statements throw AssertError.
+
+```{julia}
+M = PageRankImPt(A, 0.85)
+n = size(M, 1)
+
+#@assert transpose(M) * ones(n) ≈ zeros(n)
+@assert norm(transpose(M) * ones(n)) < 1e-12
+```
+
+```{julia}
+#@assert M * xsol ≈ zeros(n)
+@assert norm(M * xsol) < 1e-12
+```
+
+### Step 2 (20 pts)
+
+We want to benchmark the hot functions `mul!` to make sure they are efficient and allocate no memory.
+
+```{julia}
+M = PageRankImPt(A, 0.85)
+n = size(M, 1)
+v, out = ones(n), zeros(n)
+bm_mv = @benchmark mul!($out, $M, $v) setup=(fill!(out, 0); fill!(v, 1))
+```
+
+```{julia}
+bm_mtv = @benchmark mul!($out, $(transpose(M)), $v) setup=(fill!(out, 0); fill!(v, 1))
+```
+
+You will lose 1 point for each 100 bytes memory allocation. So the points you will get is
+
+```{julia}
+clamp(10 - median(bm_mv).memory / 100, 0, 10) + 
+clamp(10 - median(bm_mtv).memory / 100, 0, 10)
+```
+
+**Hint**: My median run times are about 10 ms and memory allocations are 0 bytes.
+
+### Step 3 (20 pts)
+
+Let's first try to solve the PageRank problem by the GMRES method for solving linear equations. 
+
+```{julia}
+using KrylovKit
+
+# normalize in-degrees to be the start point
+x0   = vec(sum(A, dims = 1)) .+ 1.0
+x0 ./= sum(x0)
+
+# right hand side
+b = zeros(n)
+
+# warm up (compilation)
+linsolve(M, b, x0, issymmetric = false, isposdef = false, maxiter = 1) 
+# output is complex eigenvalue/eigenvector
+(x_gmres, info), time_gmres, = @timed linsolve(M, b, x0, issymmetric = false, isposdef = false)
+```
+
+Check correctness. **You will lose all 20 points if the following statement throws `AssertError`.**
+
+```{julia}
+@assert norm(x_gmres - xsol) < 1e-8
+```
+
+GMRES should be reasonably fast. The points you'll get is
+
+```{julia}
+clamp(20 / time_gmres * 20, 0, 20)
+```
+
+**Hint**: My runtime is about 3-4 seconds.
+
+### Step 4 (20 pts)
+
+Let's first try to solve the PageRank problem by the Arnoldi method for solving eigen problems. 
+
+```{julia}
+# warm up (compilation)
+eigsolve(M, x0, 1, :SR, issymmetric = false, maxiter = 1)
+# output is complex eigenvalue/eigenvector
+(vals, vecs, info), time_arnoldi, = @timed eigsolve(M, x0, 1, :SR, issymmetric = false)
+```
+
+Check correctness. **You will lose all 20 points if the following statement throws `AssertError`.**
+
+```{julia}
+@assert abs(Real(vals[1])) < 1e-8
+```
+
+```{julia}
+x_arnoldi   = abs.(Real.(vecs[1]))
+x_arnoldi ./= sum(x_arnoldi)
+@assert norm(x_arnoldi - xsol) < 1e-8
+```
+
+Arnoldi should be reasonably fast. The points you'll get is
+
+```{julia}
+clamp(20 / time_arnoldi * 20, 0, 20)
+```
+
+**Hint**: My runtime is about 6-7 seconds.
+
+## Q6 (5 pts) Results
+
+List the top 20 pages you found and their corresponding PageRank score. Do they match the top 20 pages ranked according to in-degrees? 
+
+## Q7 Be proud of yourself
+
+Go to your resume/cv and claim you have experience performing analysis on a network of one million nodes.
