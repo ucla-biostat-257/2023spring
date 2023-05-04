@@ -249,11 +249,36 @@ xcg = cg(A, b);
 @benchmark cg($A, $b)
 ```
 
-Compute the **incomplete cholesky preconditioner**:
+#### Diagonal preconditioner
+
+Compute the diagonal preconditioner:
 
 ```{julia}
 using Preconditioners
-@time p = CholeskyPreconditioner(A, 2)
+
+# Diagonal preconditioner
+@time p = DiagonalPreconditioner(A)
+dump(p)
+```
+
+```{julia}
+# solver Ax=b by PCG
+xpcg = cg(A, b, Pl = p)
+# same answer?
+norm(xcg - xpcg)
+```
+
+```{julia}
+# PCG with diagonal preconditioner is >5 fold faster than CG
+@benchmark cg($A, $b, Pl = $p)
+```
+
+#### Incomplete Cholesky preconditioner
+
+Compute the incomplete cholesky preconditioner:
+
+```{julia}
+@time p = CholeskyPreconditioner(A, 3)
 dump(p)
 ```
 
@@ -267,27 +292,29 @@ norm(xcg - xpcg)
 ```
 
 ```{julia}
-# PCG is >10 fold faster than CG
+# PCG with incomplete Cholesky is >5 fold faster than CG
 @benchmark cg($A, $b, Pl = $p)
 ```
 
-Let's try the **AMG preconditioner**.
+#### AMG preconditioner
+
+Let's try the AMG preconditioner.
 
 ```{julia}
 using AlgebraicMultigrid
-@time ml = ruge_stuben(A) # Construct a Ruge-Stuben solver
+
+@time ml = AMGPreconditioner{RugeStuben}(A) # Construct a Ruge-Stuben solver
 ```
 
 ```{julia}
 # use AMG preconditioner in CG
-pamg = aspreconditioner(ml)
-xamg = cg(A, b, Pl = pamg)
+xamg = cg(A, b, Pl = ml)
 # same answer?
 norm(xcg - xamg)
 ```
 
 ```{julia}
-@benchmark cg($A, $b, Pl = $pamg)
+@benchmark cg($A, $b, Pl = $ml)
 ```
 
 ## Other Krylov subspace methods
@@ -337,14 +364,14 @@ eigs(@Afun)
 
 * [`IterativeSolvers.jl`](https://github.com/JuliaMath/IterativeSolvers.jl) package. [CG numerical examples](http://hua-zhou.github.io/teaching/biostatm280-2019spring/slides/15-iterative/iterative.html#Numerical-examples)
 
-* Least squares examples:
+* See the [list](https://jutho.github.io/KrylovKit.jl/stable/#Package-features-and-alternatives-1) of Julia packages for iterative methods.
 
 #### Least squares example
 
 ```{julia}
 using BenchmarkTools, IterativeSolvers, LinearAlgebra, Random, SparseArrays
 
-Random.seed!(280) # seed
+Random.seed!(257) # seed
 n, p = 10000, 5000
 X = sprandn(n, p, 0.001) # iid standard normals with sparsity 0.01
 β = ones(p)
@@ -378,7 +405,17 @@ Applications:
 2. Less memory usage. 
 3. Linear algebra on a standardized (centered and scaled) sparse matrix.
 
-Consider the differencing operator that takes differences between neighboring pixels.
+Consider the differencing operator that takes differences between neighboring pixels
+
+$$
+\mathbf{D} = \begin{pmatrix}
+-1 & 1 & & & \\
+& -1 & 1 & & \\
+& & \ddots & \\
+& & & - 1 & 1 \\
+1 & & & & -1
+\end{pmatrix}.
+$$
 
 ```{julia}
 using LinearMaps, IterativeSolvers

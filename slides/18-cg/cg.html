@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Dr. Hua Zhou @ UCLA">
-<meta name="dcterms.date" content="2023-05-01">
+<meta name="dcterms.date" content="2023-05-04">
 
 <title>Conjugate Gradient and Krylov Subspace Methods</title>
 <style>
@@ -2623,7 +2623,12 @@ vertical-align: -.125em;
   <li><a href="#conjugate-gradient-cg-method" id="toc-conjugate-gradient-cg-method" class="nav-link" data-scroll-target="#conjugate-gradient-cg-method"><span class="toc-section-number">2</span>  Conjugate gradient (CG) method</a></li>
   <li><a href="#pre-conditioned-conjugate-gradient-pcg" id="toc-pre-conditioned-conjugate-gradient-pcg" class="nav-link" data-scroll-target="#pre-conditioned-conjugate-gradient-pcg"><span class="toc-section-number">3</span>  Pre-conditioned conjugate gradient (PCG)</a>
   <ul>
-  <li><a href="#example-of-pcg" id="toc-example-of-pcg" class="nav-link" data-scroll-target="#example-of-pcg"><span class="toc-section-number">3.1</span>  Example of PCG</a></li>
+  <li><a href="#example-of-pcg" id="toc-example-of-pcg" class="nav-link" data-scroll-target="#example-of-pcg"><span class="toc-section-number">3.1</span>  Example of PCG</a>
+  <ul class="collapse">
+  <li><a href="#diagonal-preconditioner" id="toc-diagonal-preconditioner" class="nav-link" data-scroll-target="#diagonal-preconditioner"><span class="toc-section-number">3.1.1</span>  Diagonal preconditioner</a></li>
+  <li><a href="#incomplete-cholesky-preconditioner" id="toc-incomplete-cholesky-preconditioner" class="nav-link" data-scroll-target="#incomplete-cholesky-preconditioner"><span class="toc-section-number">3.1.2</span>  Incomplete Cholesky preconditioner</a></li>
+  <li><a href="#amg-preconditioner" id="toc-amg-preconditioner" class="nav-link" data-scroll-target="#amg-preconditioner"><span class="toc-section-number">3.1.3</span>  AMG preconditioner</a></li>
+  </ul></li>
   </ul></li>
   <li><a href="#other-krylov-subspace-methods" id="toc-other-krylov-subspace-methods" class="nav-link" data-scroll-target="#other-krylov-subspace-methods"><span class="toc-section-number">4</span>  Other Krylov subspace methods</a></li>
   <li><a href="#software" id="toc-software" class="nav-link" data-scroll-target="#software"><span class="toc-section-number">5</span>  Software</a>
@@ -2663,7 +2668,7 @@ vertical-align: -.125em;
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">May 1, 2023</p>
+      <p class="date">May 4, 2023</p>
     </div>
   </div>
   
@@ -2990,145 +2995,192 @@ Consider PageRank problem, <span class="math inline">\(\mathbf{A}\)</span> has d
 <span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@benchmark</span> <span class="fu">cg</span>(<span class="op">$</span>A, <span class="op">$</span>b)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="6">
 <div class="ansi-escaped-output">
-<pre>BenchmarkTools.Trial: 78 samples with 1 evaluation.
- Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">64.179 ms</span> … <span class="ansi-magenta-fg"> 66.420 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">64.554 ms               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">64.709 ms</span> ± <span class="ansi-green-fg">496.002 μs</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.00% ± 0.00%
-       ▃▃ ▂▅<span class="ansi-blue-fg">█</span>  ▂ <span class="ansi-green-fg"> </span>                                              
-  ▅▄▄█▅██▅██<span class="ansi-blue-fg">█</span>███▁<span class="ansi-green-fg">▄</span>▇▁▁▅▄▁▁▁▄▄▁▁▁▄▄▁▁▄▄▁▁▄▄▁▁▁▁▁▁▁▁▄▁▁▁▁▁▄▁▁▁▁▁▅ ▁
-  64.2 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>         66.3 ms <span class="ansi-bold">&lt;</span>
+<pre>BenchmarkTools.Trial: 49 samples with 1 evaluation.
+ Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">102.594 ms</span> … <span class="ansi-magenta-fg">114.533 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">102.973 ms               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">103.365 ms</span> ± <span class="ansi-green-fg">  1.720 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.00% ± 0.00%
+  █▄<span class="ansi-blue-fg">▂</span> <span class="ansi-green-fg"> </span>                                                          
+  ██<span class="ansi-blue-fg">█</span>▄<span class="ansi-green-fg">▄</span>▅▄▄▁▁▁▃▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃ ▁
+  103 ms<span class="ansi-bright-black-fg">           Histogram: frequency by time</span>          115 ms <span class="ansi-bold">&lt;</span>
  Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">951.14 KiB</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">16</span>.</pre>
 </div>
 </div>
 </div>
-<p>Compute the <strong>incomplete cholesky preconditioner</strong>:</p>
+<section id="diagonal-preconditioner" class="level4" data-number="3.1.1">
+<h4 data-number="3.1.1" class="anchored" data-anchor-id="diagonal-preconditioner"><span class="header-section-number">3.1.1</span> Diagonal preconditioner</h4>
+<p>Compute the diagonal preconditioner:</p>
 <div class="cell" data-tags="[]" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Preconditioners</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="pp">@time</span> p <span class="op">=</span> <span class="fu">CholeskyPreconditioner</span>(A, <span class="fl">2</span>)</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="fu">dump</span>(p)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Diagonal preconditioner</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@time</span> p <span class="op">=</span> <span class="fu">DiagonalPreconditioner</span>(A)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="fu">dump</span>(p)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>  0.346806 seconds (2.18 M allocations: 127.965 MiB, 8.32% gc time, 90.95% compilation time)
-CholeskyPreconditioner{LimitedLDLFactorizations.LimitedLDLFactorization{Float64, Int64, Vector{Int64}, Vector{Int64}}}
-  ldlt: LimitedLDLFactorizations.LimitedLDLFactorization{Float64, Int64, Vector{Int64}, Vector{Int64}}
-    __factorized: Bool true
-    n: Int64 30401
-    colptr: Array{Int64}((30402,)) [1, 13, 25, 37, 54, 65, 77, 89, 101, 118  …  265032, 265035, 265039, 265042, 265046, 265049, 265051, 265052, 265052, 265052]
-    rowind: Array{Int64}((281402,)) [3, 4, 5, 11, 12, 1557, 1558, 1559, 1599, 4639  …  30394, 30395, 30396, 30396, 30397, 30398, 30398, 30399, 30400, 30400]
-    Lrowind: SubArray{Int64, 1, Vector{Int64}, Tuple{UnitRange{Int64}}, true}
-      parent: Array{Int64}((281402,)) [3, 4, 5, 11, 12, 1557, 1558, 1559, 1599, 4639  …  30394, 30395, 30396, 30396, 30397, 30398, 30398, 30399, 30400, 30400]
-      indices: Tuple{UnitRange{Int64}}
-        1: UnitRange{Int64}
-          start: Int64 1
-          stop: Int64 265051
-      offset1: Int64 0
-      stride1: Int64 1
-    lvals: Array{Float64}((281402,)) [0.4489603296567523, -0.18749999999999997, 0.17603967034324755, 0.14083173627459808, -0.07041586813729903, 0.4489603296567523, -0.18749999999999997, -0.07041586813729904, 0.17603967034324755, -0.179584131862701  …  -0.16640565520211978, -0.21855194520387095, 0.08653153240992818, -0.173370200203267, -0.22417963267468638, 0.10509512885101711, -0.20251147923081012, -0.17650299019309632, 0.10207509595917127, -0.2196898452551419]
-    Lnzvals: SubArray{Float64, 1, Vector{Float64}, Tuple{UnitRange{Int64}}, true}
-      parent: Array{Float64}((281402,)) [0.4489603296567523, -0.18749999999999997, 0.17603967034324755, 0.14083173627459808, -0.07041586813729903, 0.4489603296567523, -0.18749999999999997, -0.07041586813729904, 0.17603967034324755, -0.179584131862701  …  -0.16640565520211978, -0.21855194520387095, 0.08653153240992818, -0.173370200203267, -0.22417963267468638, 0.10509512885101711, -0.20251147923081012, -0.17650299019309632, 0.10207509595917127, -0.2196898452551419]
-      indices: Tuple{UnitRange{Int64}}
-        1: UnitRange{Int64}
-          start: Int64 1
-          stop: Int64 265051
-      offset1: Int64 0
-      stride1: Int64 1
-    nnz_diag: Int64 30401
-    adiag: Array{Float64}((30401,)) [3.2164652525347077, 17.154481346851778, 6.924147051754996, 19.77430292917487, 12.760616603829792, 48.28231895791737, 9.221909345365539, 0.9011975506988534, 4.082255895223708, 20.870833890494254  …  45.02966003999858, 16.35389534519493, 42.191115134374364, 16.30763779616968, 44.78295311186393, 17.27866654465949, 47.36993512632002, 11.509590120749563, 14.014545517677648, 2.6277272845645587]
-    D: Array{Float64}((30401,)) [81.7636338281934, 99.30624861013088, 90.60213423539393, 26.750324485638483, 46.52587069687988, 92.13569324167857, 14.431008896050377, 49.758643298354755, 15.734940236140645, 26.761181106861635  …  18.024944750424257, 17.462707321404284, 9.755656847218392, 25.597459162900773, 14.298853819115784, 39.37255917306132, 16.620313806558222, 31.15278322987193, 7.782430381576352, 33.6138005818152]
-    P: Array{Int64}((30401,)) [5112, 5414, 5290, 5291, 5292, 5114, 5416, 5294, 5295, 5296  …  29131, 29261, 29429, 29563, 29731, 29865, 30033, 30167, 30335, 19305]
-    α: Float64 0.0
-    α_increase_factor: Float64 10.0
-    α_out: Float64 0.0
-    memory: Int64 2
-    Pinv: Array{Int64}((30401,)) [22084, 22085, 22100, 22092, 22094, 22093, 22170, 22010, 22012, 22011  …  6621, 6624, 6622, 6659, 6634, 6642, 6635, 6640, 6637, 6638]
-    wa1: Array{Float64}((30401,)) [108.43091986005145, 129.6013216175564, 158.85028852019414, 61.48015361379533, 74.20081812425546, 124.0639033139773, 21.32758311830548, 105.62711243874742, 41.732677946940285, 46.09491522775659  …  56.87768182042219, 43.50475022550046, 26.5951811869671, 59.627328381385176, 42.26329999232616, 102.44052511892738, 51.791253109201804, 100.62793402265795, 33.43032415963991, 94.34686696260094]
-    s: Array{Float64}((30401,)) [0.09603364852607384, 0.08784059823237464, 0.07934252109918416, 0.12753592254282092, 0.11609022505336444, 0.08977952008643356, 0.21653553555091717, 0.09729987811639987, 0.15479676238607123, 0.14729007716446083  …  0.13259558273097546, 0.15161133091865284, 0.19390924852103514, 0.1295022531135319, 0.15382194473719782, 0.09880162828811699, 0.13895423591889616, 0.0996875039228606, 0.17295363978350775, 0.10295234864043706]
-    w: Array{Float64}((30401,)) [0.0, 0.0, 0.36914192626725456, -0.15426983152559373, -0.18711189701605135, 0.0, 0.0, 0.005244189781570043, -0.15945084146291447, -0.1911548646126707  …  -0.029192905124726592, 0.06172607348874463, -0.058688345738644974, -0.100790993194769, -0.05926487907517998, -0.08541152269529473, -0.06954852108510054, -0.00452677467404367, -0.04179281708576552, -0.002397954453101481]
-    indr: Array{Int64}((30401,)) [30400, 30400, 30400, 30400, 30398, 30398, 30394, 30396, 30350, 30347  …  220591, 220592, 220594, 220595, 220597, 220598, 220600, 220601, 220601, 220601]
-    indf: Array{Int64}((30401,)) [11, 23, 35, 52, 63, 75, 87, 99, 116, 127  …  265030, 265033, 265037, 265040, 265044, 265047, 265049, 0, 0, 0]
-    list: Array{Int64}((30401,)) [4, 4041, 12, 4637, 1558, 8, 32, 10, 436, 9  …  30390, 18409, 18410, 18409, 7345, 18390, 7339, 30398, 0, 0]
-    pos: Array{Int64}((30401,)) [1, 2, 3, 4, 5, 6, 7, 8, 9, 10  …  30392, 30393, 30394, 30395, 30396, 30397, 30398, 30399, 30400, 30401]
-    neg: Array{Int64}((0,)) Int64[]
-    computed_posneg: Bool false
-  memory: Int64 2</code></pre>
+<pre><code>  0.017999 seconds (59.32 k allocations: 4.745 MiB, 97.14% compilation time)
+DiagonalPreconditioner{Float64, Vector{Float64}}
+  D: Array{Float64}((30401,)) [7.774170996974972, 41.46224531719985, 14.932858015514414, 38.179664098877026, 16.978596211846156, 52.37284903096915, 13.86168691452821, 21.55614784651465, 14.196600657402943, 54.159055659634376  …  51.3986405971589, 11.438303453586828, 9.60564448863751, 13.061576693264229, 60.056097875438375, 19.455032347657614, 43.70407464540223, 20.295806637436748, 64.5402274209271, 12.10129264142383]</code></pre>
 </div>
 </div>
-<p>Pre-conditioned conjugate gradient:</p>
 <div class="cell" data-tags="[]" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># solver Ax=b by PCG</span></span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>xpcg <span class="op">=</span> <span class="fu">cg</span>(A, b, Pl <span class="op">=</span> p)</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co"># same answer?</span></span>
 <span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="fu">norm</span>(xcg <span class="op">-</span> xpcg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="8">
-<pre><code>5.254298293596894e-7</code></pre>
+<pre><code>5.106824817763078e-7</code></pre>
 </div>
 </div>
 <div class="cell" data-tags="[]" data-execution_count="9">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># PCG is &gt;10 fold faster than CG</span></span>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># PCG with diagonal preconditioner is &gt;5 fold faster than CG</span></span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="pp">@benchmark</span> <span class="fu">cg</span>(<span class="op">$</span>A, <span class="op">$</span>b, Pl <span class="op">=</span> <span class="op">$</span>p)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="9">
 <div class="ansi-escaped-output">
-<pre>BenchmarkTools.Trial: 332 samples with 1 evaluation.
- Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">14.416 ms</span> … <span class="ansi-magenta-fg"> 20.276 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 25.03%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">15.006 ms               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">15.077 ms</span> ± <span class="ansi-green-fg">449.762 μs</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.27% ±  2.17%
-                      ▁█▇<span class="ansi-blue-fg">▇</span>▂ <span class="ansi-green-fg"> </span>                                   
-  ▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▃▃▄███<span class="ansi-blue-fg">█</span>█▆<span class="ansi-green-fg">▆</span>▄▃▃▃▃▃▃▃▃▃▂▂▁▂▁▂▂▁▁▁▁▁▁▁▁▁▁▁▂▁▁▁▂ ▃
-  14.4 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>         15.9 ms <span class="ansi-bold">&lt;</span>
+<pre>BenchmarkTools.Trial: 386 samples with 1 evaluation.
+ Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">12.672 ms</span> … <span class="ansi-magenta-fg"> 16.781 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 22.56%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">12.869 ms               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">12.953 ms</span> ± <span class="ansi-green-fg">396.013 μs</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.22% ±  1.95%
+    ▇▆█▅▁<span class="ansi-blue-fg">▁</span>  <span class="ansi-green-fg">▂</span>                                                   
+  ▄▇█████<span class="ansi-blue-fg">█</span>██<span class="ansi-green-fg">█</span>▆▇▆▇▆▅▅▅▄▂▃▃▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▁▃▁▁▁▁▁▂▂ ▃
+  12.7 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>         14.4 ms <span class="ansi-bold">&lt;</span>
  Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">951.14 KiB</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">16</span>.</pre>
 </div>
 </div>
 </div>
-<p>Let’s try the <strong>AMG preconditioner</strong>.</p>
+</section>
+<section id="incomplete-cholesky-preconditioner" class="level4" data-number="3.1.2">
+<h4 data-number="3.1.2" class="anchored" data-anchor-id="incomplete-cholesky-preconditioner"><span class="header-section-number">3.1.2</span> Incomplete Cholesky preconditioner</h4>
+<p>Compute the incomplete cholesky preconditioner:</p>
 <div class="cell" data-tags="[]" data-execution_count="10">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">AlgebraicMultigrid</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="pp">@time</span> ml <span class="op">=</span> <span class="fu">ruge_stuben</span>(A) <span class="co"># Construct a Ruge-Stuben solver</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@time</span> p <span class="op">=</span> <span class="fu">CholeskyPreconditioner</span>(A, <span class="fl">3</span>)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dump</span>(p)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>  1.019688 seconds (5.69 M allocations: 357.201 MiB, 4.08% gc time, 97.57% compilation time)</code></pre>
+<pre><code>  0.348359 seconds (2.18 M allocations: 128.434 MiB, 5.12% gc time, 94.26% compilation time)
+CholeskyPreconditioner{LimitedLDLFactorizations.LimitedLDLFactorization{Float64, Int64, Vector{Int64}, Vector{Int64}}}
+  ldlt: LimitedLDLFactorizations.LimitedLDLFactorization{Float64, Int64, Vector{Int64}, Vector{Int64}}
+    __factorized: Bool true
+    n: Int64 30401
+    colptr: Array{Int64}((30402,)) [1, 13, 25, 38, 55, 67, 79, 91, 104, 121  …  287064, 287068, 287073, 287077, 287081, 287084, 287086, 287087, 287087, 287087]
+    rowind: Array{Int64}((311803,)) [3, 4, 5, 11, 12, 1557, 1558, 1559, 1599, 4639  …  30394, 30395, 30396, 30396, 30397, 30398, 30398, 30399, 30400, 30400]
+    Lrowind: SubArray{Int64, 1, Vector{Int64}, Tuple{UnitRange{Int64}}, true}
+      parent: Array{Int64}((311803,)) [3, 4, 5, 11, 12, 1557, 1558, 1559, 1599, 4639  …  30394, 30395, 30396, 30396, 30397, 30398, 30398, 30399, 30400, 30400]
+      indices: Tuple{UnitRange{Int64}}
+        1: UnitRange{Int64}
+          start: Int64 1
+          stop: Int64 287086
+      offset1: Int64 0
+      stride1: Int64 1
+    lvals: Array{Float64}((311803,)) [0.4657709692630465, -0.18749999999999997, 0.15922903073695346, 0.12738322458956278, -0.06369161229478137, 0.4657709692630464, -0.18749999999999994, -0.06369161229478139, 0.15922903073695344, -0.18630838770521863  …  -0.19650546207063904, -0.19232039308501836, 0.10505919250762698, -0.22784554107706556, -0.13952055929888446, 0.04399631691863041, -0.1348491710037475, -0.24378706205379694, 0.14543372967266255, -0.2613026214794272]
+    Lnzvals: SubArray{Float64, 1, Vector{Float64}, Tuple{UnitRange{Int64}}, true}
+      parent: Array{Float64}((311803,)) [0.4657709692630465, -0.18749999999999997, 0.15922903073695346, 0.12738322458956278, -0.06369161229478137, 0.4657709692630464, -0.18749999999999994, -0.06369161229478139, 0.15922903073695344, -0.18630838770521863  …  -0.19650546207063904, -0.19232039308501836, 0.10505919250762698, -0.22784554107706556, -0.13952055929888446, 0.04399631691863041, -0.1348491710037475, -0.24378706205379694, 0.14543372967266255, -0.2613026214794272]
+      indices: Tuple{UnitRange{Int64}}
+        1: UnitRange{Int64}
+          start: Int64 1
+          stop: Int64 287086
+      offset1: Int64 0
+      stride1: Int64 1
+    nnz_diag: Int64 30401
+    adiag: Array{Float64}((30401,)) [7.774170996974972, 41.46224531719985, 14.932858015514414, 38.179664098877026, 16.978596211846156, 52.37284903096915, 13.86168691452821, 21.55614784651465, 14.196600657402943, 54.159055659634376  …  51.3986405971589, 11.438303453586828, 9.60564448863751, 13.061576693264229, 60.056097875438375, 19.455032347657614, 43.70407464540223, 20.295806637436748, 64.5402274209271, 12.10129264142383]
+    D: Array{Float64}((30401,)) [60.24626267150246, 77.90257745226796, 45.27594009116725, 20.660829608398846, 53.27872139900099, 49.64949255797133, 118.08506787498175, 60.0333054631261, 25.12126152519609, 67.18225811104041  …  17.421069461690468, 42.23913081617646, 18.857430196463785, 40.37754793841551, 13.076297771824503, 19.578418452567785, 13.93861138712909, 42.51089332443041, 10.580141491538484, 36.48221494786407]
+    P: Array{Int64}((30401,)) [5112, 5414, 5290, 5291, 5292, 5114, 5416, 5294, 5295, 5296  …  29131, 29261, 29429, 29563, 29731, 29865, 30033, 30167, 30335, 19305]
+    α: Float64 0.0
+    α_increase_factor: Float64 10.0
+    α_out: Float64 0.0
+    memory: Int64 3
+    Pinv: Array{Int64}((30401,)) [22084, 22085, 22100, 22092, 22094, 22093, 22170, 22010, 22012, 22011  …  6621, 6624, 6622, 6659, 6634, 6642, 6635, 6640, 6637, 6638]
+    wa1: Array{Float64}((30401,)) [80.54792571082181, 106.70647496935601, 79.68994602840684, 47.92689194790541, 107.50462744688559, 64.73315902530675, 151.73489350918678, 97.29094391876166, 57.502430835828896, 124.5868524319069  …  50.63568036684449, 112.15431443227756, 55.508205225504035, 106.21521777616637, 39.548206531058874, 37.88832312454793, 42.33569061422878, 118.02986443765339, 36.85024863122919, 98.0601657180297]
+    s: Array{Float64}((30401,)) [0.11142247973875728, 0.09680652110608393, 0.11202068748345742, 0.14444761216898291, 0.09644648863780006, 0.12429011770100179, 0.08118153669907906, 0.10138268563337113, 0.13187330720983448, 0.08959089868907116  …  0.14053085065554363, 0.09442609015929096, 0.13422128964418487, 0.09703013330896199, 0.15901445433049677, 0.16246032127142784, 0.15369037690097764, 0.09204581466022771, 0.16473268943010824, 0.10098426028032755]
+    w: Array{Float64}((30401,)) [0.0, 0.0, 0.13464250647797327, -0.11895102260978459, -0.20600254779808083, 0.0, 0.0, 0.3636348140971991, -0.11034793027466858, -0.2176852607485413  …  -0.06952725645155644, 0.020047478294242152, -0.05562605908749839, -0.07341555753666258, -0.06219970748519868, -0.15529204430403523, -0.10177503543375246, 0.001664855664904685, -0.043333881129982904, 0.0016573469995570058]
+    indr: Array{Int64}((30401,)) [30400, 30400, 30400, 30400, 30399, 30397, 30395, 30397, 30395, 30348  …  220591, 220592, 220594, 220595, 220597, 220598, 220600, 220601, 220601, 220601]
+    indf: Array{Int64}((30401,)) [11, 23, 36, 53, 65, 77, 89, 102, 119, 131  …  287062, 287066, 287071, 287075, 287079, 287082, 287084, 0, 0, 0]
+    list: Array{Int64}((30401,)) [4, 28, 4637, 3, 4, 67, 8, 6, 68, 1560  …  7373, 18410, 18387, 18410, 7344, 18391, 7339, 30398, 0, 0]
+    pos: Array{Int64}((30401,)) [1, 2, 3, 4, 5, 6, 7, 8, 9, 10  …  30392, 30393, 30394, 30395, 30396, 30397, 30398, 30399, 30400, 30401]
+    neg: Array{Int64}((0,)) Int64[]
+    computed_posneg: Bool false
+  memory: Int64 3</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="10">
-<pre><code>Multilevel Solver
+</div>
+<p>Pre-conditioned conjugate gradient:</p>
+<div class="cell" data-tags="[]" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># solver Ax=b by PCG</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>xpcg <span class="op">=</span> <span class="fu">cg</span>(A, b, Pl <span class="op">=</span> p)</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="co"># same answer?</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="fu">norm</span>(xcg <span class="op">-</span> xpcg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="11">
+<pre><code>5.150315658956341e-7</code></pre>
+</div>
+</div>
+<div class="cell" data-tags="[]" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># PCG with incomplete Cholesky is &gt;5 fold faster than CG</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="pp">@benchmark</span> <span class="fu">cg</span>(<span class="op">$</span>A, <span class="op">$</span>b, Pl <span class="op">=</span> <span class="op">$</span>p)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="12">
+<div class="ansi-escaped-output">
+<pre>BenchmarkTools.Trial: 361 samples with 1 evaluation.
+ Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">13.670 ms</span> … <span class="ansi-magenta-fg"> 19.968 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 30.69%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">13.808 ms               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">13.866 ms</span> ± <span class="ansi-green-fg">425.852 μs</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.25% ±  2.17%
+       ▇█<span class="ansi-blue-fg">▅</span>▅  <span class="ansi-green-fg"> </span>                                                  
+  ▃▃▅▆███<span class="ansi-blue-fg">█</span>██▇<span class="ansi-green-fg">▆</span>▄▄▄▄▄▂▃▃▂▃▁▁▂▁▁▁▂▁▁▂▂▁▁▁▁▁▁▁▂▁▁▁▁▁▁▁▁▁▂▁▁▁▁▁▁▁▁▂ ▃
+  13.7 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>         14.8 ms <span class="ansi-bold">&lt;</span>
+ Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">951.14 KiB</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">16</span>.</pre>
+</div>
+</div>
+</div>
+</section>
+<section id="amg-preconditioner" class="level4" data-number="3.1.3">
+<h4 data-number="3.1.3" class="anchored" data-anchor-id="amg-preconditioner"><span class="header-section-number">3.1.3</span> AMG preconditioner</h4>
+<p>Let’s try the AMG preconditioner.</p>
+<div class="cell" data-tags="[]" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">AlgebraicMultigrid</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="pp">@time</span> ml <span class="op">=</span> <span class="fu">AMGPreconditioner</span><span class="dt">{RugeStuben}</span>(A) <span class="co"># Construct a Ruge-Stuben solver</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  1.049475 seconds (5.70 M allocations: 357.822 MiB, 5.15% gc time, 97.64% compilation time)</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="13">
+<pre><code>AMGPreconditioner{RugeStuben, AlgebraicMultigrid.MultiLevel{AlgebraicMultigrid.Pinv{Float64}, GaussSeidel{SymmetricSweep}, GaussSeidel{SymmetricSweep}, SparseMatrixCSC{Float64, Int64}, Adjoint{Float64, SparseMatrixCSC{Float64, Int64}}, SparseMatrixCSC{Float64, Int64}, AlgebraicMultigrid.MultiLevelWorkspace{Vector{Float64}, 1}}, AlgebraicMultigrid.V}(Multilevel Solver
 -----------------
 Operator Complexity: 1.136
-Grid Complexity: 1.172
+Grid Complexity: 1.173
 No. of Levels: 8
 Coarse Solver: Pinv
 Level     Unknowns     NonZeros
 -----     --------     --------
-    1        30401       471601 [88.06%]
-    2         3599        45157 [ 8.43%]
-    3         1082        13042 [ 2.44%]
-    4          358         4048 [ 0.76%]
-    5          121         1193 [ 0.22%]
-    6           45          367 [ 0.07%]
-    7           17          115 [ 0.02%]
-    8            7           33 [ 0.01%]</code></pre>
+    1        30401       471601 [88.05%]
+    2         3611        45311 [ 8.46%]
+    3         1090        13164 [ 2.46%]
+    4          361         3937 [ 0.74%]
+    5          117         1083 [ 0.20%]
+    6           44          354 [ 0.07%]
+    7           18          124 [ 0.02%]
+    8            6           26 [ 0.00%]
+, AlgebraicMultigrid.V())</code></pre>
 </div>
 </div>
-<div class="cell" data-tags="[]" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># use AMG preconditioner in CG</span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>pamg <span class="op">=</span> <span class="fu">aspreconditioner</span>(ml)</span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>xamg <span class="op">=</span> <span class="fu">cg</span>(A, b, Pl <span class="op">=</span> pamg)</span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="co"># same answer?</span></span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="fu">norm</span>(xcg <span class="op">-</span> xamg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="11">
-<pre><code>5.248711186264102e-7</code></pre>
+<div class="cell" data-tags="[]" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># use AMG preconditioner in CG</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>xamg <span class="op">=</span> <span class="fu">cg</span>(A, b, Pl <span class="op">=</span> ml)</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="co"># same answer?</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="fu">norm</span>(xcg <span class="op">-</span> xamg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="14">
+<pre><code>5.060940530051128e-7</code></pre>
 </div>
 </div>
-<div class="cell" data-tags="[]" data-execution_count="12">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@benchmark</span> <span class="fu">cg</span>(<span class="op">$</span>A, <span class="op">$</span>b, Pl <span class="op">=</span> <span class="op">$</span>pamg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="12">
+<div class="cell" data-tags="[]" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@benchmark</span> <span class="fu">cg</span>(<span class="op">$</span>A, <span class="op">$</span>b, Pl <span class="op">=</span> <span class="op">$</span>ml)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="15">
 <div class="ansi-escaped-output">
-<pre>BenchmarkTools.Trial: 107 samples with 1 evaluation.
- Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">46.087 ms</span> … <span class="ansi-magenta-fg"> 48.762 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">46.935 ms               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">47.007 ms</span> ± <span class="ansi-green-fg">528.718 μs</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.00% ± 0.00%
-  ▃       ▁ ▁ ▆ ▁  █▃▆▆<span class="ansi-blue-fg"> </span> <span class="ansi-green-fg"> </span>█▆▁   ▃▁▁   ▁▁▁                       
-  █▇▄▇▇▇▄▁█▁█▁█▇█▄▇████<span class="ansi-blue-fg">▇</span>▄<span class="ansi-green-fg">▇</span>███▄▁▇███▄▁▇███▇▄▁▁▄▄▄▄▁▄▁▁▁▁▁▁▁▁▁▁▄ ▄
-  46.1 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>         48.5 ms <span class="ansi-bold">&lt;</span>
- Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">951.23 KiB</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">16</span>.</pre>
+<pre>BenchmarkTools.Trial: 105 samples with 1 evaluation.
+ Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">46.868 ms</span> … <span class="ansi-magenta-fg"> 50.136 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">47.869 ms               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">47.871 ms</span> ± <span class="ansi-green-fg">504.177 μs</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.00% ± 0.00%
+           █▃        ▁  ▁▁    ▁<span class="ansi-blue-fg"> </span>       ▆▆                       
+  ▄▁▁▁▁▁▁▄▆██▄▄▆▁▆▇▄▄█▄▆██▁▇▆▆█<span class="ansi-blue-fg">▆</span>▄▆▇▇▄▆▁██▄▄▇▇▇▇▆▄▄▄▁▄▁▁▁▁▁▄▁▁▄ ▄
+  46.9 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>           49 ms <span class="ansi-bold">&lt;</span>
+ Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">951.14 KiB</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">16</span>.</pre>
 </div>
 </div>
 </div>
+</section>
 </section>
 </section>
 <section id="other-krylov-subspace-methods" class="level2" data-number="4">
@@ -3159,84 +3211,84 @@ Level     Unknowns     NonZeros
 <code>cholinc</code>, <code>luinc</code>, …</p></li>
 <li><p>Get familiar with the <strong>reverse communication interface (RCI)</strong> for utilizing iterative solvers:</p></li>
 </ul>
-<div class="sourceCode" id="cb24"><pre class="sourceCode matlab code-with-copy"><code class="sourceCode matlab"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="va">x</span> <span class="op">=</span> <span class="va">gmres</span>(<span class="va">A</span><span class="op">,</span> <span class="va">b</span>)</span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="va">x</span> <span class="op">=</span> <span class="va">gmres</span>(<span class="op">@</span><span class="va">Afun</span><span class="op">,</span> <span class="va">b</span>)</span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="va">eigs</span>(<span class="va">A</span>)</span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="va">eigs</span>(<span class="op">@</span><span class="va">Afun</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb29"><pre class="sourceCode matlab code-with-copy"><code class="sourceCode matlab"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="va">x</span> <span class="op">=</span> <span class="va">gmres</span>(<span class="va">A</span><span class="op">,</span> <span class="va">b</span>)</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="va">x</span> <span class="op">=</span> <span class="va">gmres</span>(<span class="op">@</span><span class="va">Afun</span><span class="op">,</span> <span class="va">b</span>)</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="va">eigs</span>(<span class="va">A</span>)</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="va">eigs</span>(<span class="op">@</span><span class="va">Afun</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="julia" class="level3" data-number="5.2">
 <h3 data-number="5.2" class="anchored" data-anchor-id="julia"><span class="header-section-number">5.2</span> Julia</h3>
 <ul>
 <li><p><code>eigs</code> and <code>svds</code> in the <a href="https://github.com/JuliaLinearAlgebra/Arpack.jl">Arpack.jl</a> package. <a href="http://hua-zhou.github.io/teaching/biostatm280-2019spring/slides/17-eigsvd/eigsvd.html#Lanczos/Arnoldi-iterative-method-for-top-eigen-pairs">Numerical examples</a> later.</p></li>
 <li><p><a href="https://github.com/JuliaMath/IterativeSolvers.jl"><code>IterativeSolvers.jl</code></a> package. <a href="http://hua-zhou.github.io/teaching/biostatm280-2019spring/slides/15-iterative/iterative.html#Numerical-examples">CG numerical examples</a></p></li>
-<li><p>Least squares examples:</p></li>
+<li><p>See the <a href="https://jutho.github.io/KrylovKit.jl/stable/#Package-features-and-alternatives-1">list</a> of Julia packages for iterative methods.</p></li>
 </ul>
 <section id="least-squares-example" class="level4" data-number="5.2.1">
 <h4 data-number="5.2.1" class="anchored" data-anchor-id="least-squares-example"><span class="header-section-number">5.2.1</span> Least squares example</h4>
-<div class="cell" data-tags="[]" data-execution_count="13">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">BenchmarkTools</span>, <span class="bu">IterativeSolvers</span>, <span class="bu">LinearAlgebra</span>, <span class="bu">Random</span>, <span class="bu">SparseArrays</span></span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="bu">Random</span>.<span class="fu">seed!</span>(<span class="fl">280</span>) <span class="co"># seed</span></span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>n, p <span class="op">=</span> <span class="fl">10000</span>, <span class="fl">5000</span></span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> <span class="fu">sprandn</span>(n, p, <span class="fl">0.001</span>) <span class="co"># iid standard normals with sparsity 0.01</span></span>
-<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>β <span class="op">=</span> <span class="fu">ones</span>(p)</span>
-<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> X <span class="op">*</span> β <span class="op">+</span> <span class="fu">randn</span>(n)</span>
-<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>β̂_qr <span class="op">=</span> X <span class="op">\</span> y</span>
-<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a><span class="co"># least squares by QR</span></span>
-<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@benchmark</span> <span class="op">$</span>X <span class="op">\</span> <span class="op">$</span>y</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="13">
+<div class="cell" data-tags="[]" data-execution_count="16">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">BenchmarkTools</span>, <span class="bu">IterativeSolvers</span>, <span class="bu">LinearAlgebra</span>, <span class="bu">Random</span>, <span class="bu">SparseArrays</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="bu">Random</span>.<span class="fu">seed!</span>(<span class="fl">257</span>) <span class="co"># seed</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>n, p <span class="op">=</span> <span class="fl">10000</span>, <span class="fl">5000</span></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> <span class="fu">sprandn</span>(n, p, <span class="fl">0.001</span>) <span class="co"># iid standard normals with sparsity 0.01</span></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>β <span class="op">=</span> <span class="fu">ones</span>(p)</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> X <span class="op">*</span> β <span class="op">+</span> <span class="fu">randn</span>(n)</span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>β̂_qr <span class="op">=</span> X <span class="op">\</span> y</span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a><span class="co"># least squares by QR</span></span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@benchmark</span> <span class="op">$</span>X <span class="op">\</span> <span class="op">$</span>y</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="16">
 <div class="ansi-escaped-output">
-<pre>BenchmarkTools.Trial: 3 samples with 1 evaluation.
- Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">1.680 s</span> … <span class="ansi-magenta-fg">   2.105 s</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.49% … 4.65%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">1.682 s               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>5.13%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">1.823 s</span> ± <span class="ansi-green-fg">244.830 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>3.52% ± 2.55%
-  <span class="ansi-blue-fg">█</span>                  <span class="ansi-green-fg"> </span>                                     ▁  
-  <span class="ansi-blue-fg">█</span>▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁<span class="ansi-green-fg">▁</span>▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█ ▁
-  1.68 s<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>         2.11 s <span class="ansi-bold">&lt;</span>
- Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">1.55 GiB</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">184</span>.</pre>
+<pre>BenchmarkTools.Trial: 4 samples with 1 evaluation.
+ Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">1.566 s</span> … <span class="ansi-magenta-fg">  1.734 s</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.42% … 5.62%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">1.614 s              </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>2.85%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">1.632 s</span> ± <span class="ansi-green-fg">77.108 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>3.00% ± 2.88%
+  █   <span class="ansi-blue-fg">█</span>                 <span class="ansi-green-fg"> </span>     █                           █  
+  █▁▁▁<span class="ansi-blue-fg">█</span>▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁<span class="ansi-green-fg">▁</span>▁▁▁▁▁█▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█ ▁
+  1.57 s<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>        1.73 s <span class="ansi-bold">&lt;</span>
+ Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">1.43 GiB</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">178</span>.</pre>
 </div>
 </div>
 </div>
-<div class="cell" data-tags="[]" data-execution_count="14">
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>β̂_lsqr <span class="op">=</span> <span class="fu">lsqr</span>(X, y)</span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="pp">@show</span> <span class="fu">norm</span>(β̂_qr <span class="op">-</span> β̂_lsqr)</span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="co"># least squares by lsqr</span></span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@benchmark</span> <span class="fu">lsqr</span>(<span class="op">$</span>X, <span class="op">$</span>y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-tags="[]" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>β̂_lsqr <span class="op">=</span> <span class="fu">lsqr</span>(X, y)</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="pp">@show</span> <span class="fu">norm</span>(β̂_qr <span class="op">-</span> β̂_lsqr)</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="co"># least squares by lsqr</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@benchmark</span> <span class="fu">lsqr</span>(<span class="op">$</span>X, <span class="op">$</span>y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>norm(β̂_qr - β̂_lsqr) = 0.0001034647556705227</code></pre>
+<pre><code>norm(β̂_qr - β̂_lsqr) = 0.00010166339934556622</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="14">
+<div class="cell-output cell-output-display" data-execution_count="17">
 <div class="ansi-escaped-output">
-<pre>BenchmarkTools.Trial: 165 samples with 1 evaluation.
- Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">29.061 ms</span> … <span class="ansi-magenta-fg">38.636 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 22.34%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">29.504 ms              </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">30.427 ms</span> ± <span class="ansi-green-fg"> 2.188 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>3.03% ±  6.00%
-   ▂█<span class="ansi-blue-fg">▄</span>     <span class="ansi-green-fg"> </span>                                                   
-  ▇██<span class="ansi-blue-fg">█</span>▇▆▁▃▃<span class="ansi-green-fg">▁</span>▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▃▂▃▃▂▃▁▁▃▂▁▁▁▂▁▁▁▁▃▃▁▁▁▁▁▂ ▂
-  29.1 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>        37.6 ms <span class="ansi-bold">&lt;</span>
- Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">16.63 MiB</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">1724</span>.</pre>
+<pre>BenchmarkTools.Trial: 154 samples with 1 evaluation.
+ Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">30.712 ms</span> … <span class="ansi-magenta-fg">40.783 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 21.37%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">31.682 ms              </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">32.465 ms</span> ± <span class="ansi-green-fg"> 1.874 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>2.38% ±  4.86%
+      ▃ █<span class="ansi-blue-fg">▂</span>     <span class="ansi-green-fg"> </span>                                               
+  ▂▁▃██▇█<span class="ansi-blue-fg">█</span>▆▆▆▄▃<span class="ansi-green-fg">▄</span>▁▁▁▂▁▁▁▃▂▁▁▁▁▂▃▁▃▄▁▁▃▁▃▃▁▁▁▁▁▁▁▂▄▁▁▁▂▂▂▂▁▁▁▁▂ ▂
+  30.7 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>        38.6 ms <span class="ansi-bold">&lt;</span>
+ Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">17.54 MiB</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">1820</span>.</pre>
 </div>
 </div>
 </div>
-<div class="cell" data-tags="[]" data-execution_count="15">
-<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>β̂_lsmr <span class="op">=</span> <span class="fu">lsmr</span>(X, y)</span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="pp">@show</span> <span class="fu">norm</span>(β̂_qr <span class="op">-</span> β̂_lsmr)</span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="co"># least squares by lsmr</span></span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@benchmark</span> <span class="fu">lsmr</span>(<span class="op">$</span>X, <span class="op">$</span>y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-tags="[]" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>β̂_lsmr <span class="op">=</span> <span class="fu">lsmr</span>(X, y)</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="pp">@show</span> <span class="fu">norm</span>(β̂_qr <span class="op">-</span> β̂_lsmr)</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="co"># least squares by lsmr</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@benchmark</span> <span class="fu">lsmr</span>(<span class="op">$</span>X, <span class="op">$</span>y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>norm(β̂_qr - β̂_lsmr) = 1.172278529676753</code></pre>
+<pre><code>norm(β̂_qr - β̂_lsmr) = 0.10052598447267552</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="15">
+<div class="cell-output cell-output-display" data-execution_count="18">
 <div class="ansi-escaped-output">
-<pre>BenchmarkTools.Trial: 259 samples with 1 evaluation.
- Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">18.431 ms</span> … <span class="ansi-magenta-fg">27.088 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 30.35%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">19.049 ms              </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">19.356 ms</span> ± <span class="ansi-green-fg"> 1.345 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>1.60% ±  5.27%
-   ▁ ▅█<span class="ansi-blue-fg">█</span>▄▃<span class="ansi-green-fg"> </span>                                                    
-  ▇████<span class="ansi-blue-fg">█</span>██<span class="ansi-green-fg">▇</span>▇▁▄▄▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▄▁▁▁▄▁▁▁▁▁▁▁▁▁▁▁▄▆▁▆▁▁▄▄▁▁▄▄ ▆
-  18.4 ms<span class="ansi-bright-black-fg">      </span><span class="ansi-bright-black-fg">Histogram: </span><span class="ansi-bright-black-fg ansi-bold">log(</span><span class="ansi-bright-black-fg">frequency</span><span class="ansi-bright-black-fg ansi-bold">)</span><span class="ansi-bright-black-fg"> by time</span>      25.7 ms <span class="ansi-bold">&lt;</span>
- Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">5.54 MiB</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">706</span>.</pre>
+<pre>BenchmarkTools.Trial: 225 samples with 1 evaluation.
+ Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">21.190 ms</span> … <span class="ansi-magenta-fg">31.535 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 28.85%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">21.971 ms              </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">22.319 ms</span> ± <span class="ansi-green-fg"> 1.499 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>1.55% ±  4.99%
+   ▄▆▇█<span class="ansi-blue-fg">█</span>▇<span class="ansi-green-fg">▆</span>▄▁                                                   
+  ▅████<span class="ansi-blue-fg">█</span>█<span class="ansi-green-fg">█</span>██▆▅▅▁▅▁▁▁▁▁▁▁▁▅▁▁▁▁▅▅▅▅▁▁▅▅▅▁▁▁▁▅▁▁▁▁▁▁▁▅▁▁▁▁▁▅▁▁▅ ▆
+  21.2 ms<span class="ansi-bright-black-fg">      </span><span class="ansi-bright-black-fg">Histogram: </span><span class="ansi-bright-black-fg ansi-bold">log(</span><span class="ansi-bright-black-fg">frequency</span><span class="ansi-bright-black-fg ansi-bold">)</span><span class="ansi-bright-black-fg"> by time</span>      30.1 ms <span class="ansi-bold">&lt;</span>
+ Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">6.27 MiB</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">801</span>.</pre>
 </div>
 </div>
 </div>
@@ -3247,44 +3299,53 @@ Level     Unknowns     NonZeros
 <p>Applications:<br>
 1. The matrix is not sparse but admits special structure, e.g., easy + low rank (PageRank), Kronecker proudcts, etc.<br>
 2. Less memory usage. 3. Linear algebra on a standardized (centered and scaled) sparse matrix.</p>
-<p>Consider the differencing operator that takes differences between neighboring pixels.</p>
-<div class="cell" data-tags="[]" data-execution_count="16">
-<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">LinearMaps</span>, <span class="bu">IterativeSolvers</span></span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Overwrite y with A * x</span></span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="co"># left difference assuming periodic boundary conditions</span></span>
-<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">leftdiff!</span>(y<span class="op">::</span><span class="dt">AbstractVector</span>, x<span class="op">::</span><span class="dt">AbstractVector</span>) </span>
-<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>    N <span class="op">=</span> <span class="fu">length</span>(x)</span>
-<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">length</span>(y) <span class="op">==</span> N <span class="op">||</span> <span class="fu">throw</span>(<span class="fu">DimensionMismatch</span>())</span>
-<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@inbounds</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>N</span>
-<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>        y[i] <span class="op">=</span> x[i] <span class="op">-</span> x[<span class="fu">mod1</span>(i <span class="op">-</span> <span class="fl">1</span>, N)]</span>
-<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
-<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> y</span>
-<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Overwrite y with A&#39; * x</span></span>
-<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a><span class="co"># minus right difference</span></span>
-<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">mrightdiff!</span>(y<span class="op">::</span><span class="dt">AbstractVector</span>, x<span class="op">::</span><span class="dt">AbstractVector</span>) </span>
-<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a>    N <span class="op">=</span> <span class="fu">length</span>(x)</span>
-<span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">length</span>(y) <span class="op">==</span> N <span class="op">||</span> <span class="fu">throw</span>(<span class="fu">DimensionMismatch</span>())</span>
-<span id="cb30-19"><a href="#cb30-19" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@inbounds</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>N</span>
-<span id="cb30-20"><a href="#cb30-20" aria-hidden="true" tabindex="-1"></a>        y[i] <span class="op">=</span> x[i] <span class="op">-</span> x[<span class="fu">mod1</span>(i <span class="op">+</span> <span class="fl">1</span>, N)]</span>
-<span id="cb30-21"><a href="#cb30-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
-<span id="cb30-22"><a href="#cb30-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> y</span>
-<span id="cb30-23"><a href="#cb30-23" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb30-24"><a href="#cb30-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-25"><a href="#cb30-25" aria-hidden="true" tabindex="-1"></a><span class="co"># define linear map</span></span>
-<span id="cb30-26"><a href="#cb30-26" aria-hidden="true" tabindex="-1"></a>D <span class="op">=</span> <span class="fu">LinearMap</span><span class="dt">{Float64}</span>(leftdiff!, mrightdiff!, <span class="fl">100</span>; ismutating<span class="op">=</span><span class="cn">true</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="16">
+<p>Consider the differencing operator that takes differences between neighboring pixels</p>
+<p><span class="math display">\[
+\mathbf{D} = \begin{pmatrix}
+-1 &amp; 1 &amp; &amp; &amp; \\
+&amp; -1 &amp; 1 &amp; &amp; \\
+&amp; &amp; \ddots &amp; \\
+&amp; &amp; &amp; - 1 &amp; 1 \\
+1 &amp; &amp; &amp; &amp; -1
+\end{pmatrix}.
+\]</span></p>
+<div class="cell" data-tags="[]" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">LinearMaps</span>, <span class="bu">IterativeSolvers</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Overwrite y with A * x</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="co"># left difference assuming periodic boundary conditions</span></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">leftdiff!</span>(y<span class="op">::</span><span class="dt">AbstractVector</span>, x<span class="op">::</span><span class="dt">AbstractVector</span>) </span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>    N <span class="op">=</span> <span class="fu">length</span>(x)</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">length</span>(y) <span class="op">==</span> N <span class="op">||</span> <span class="fu">throw</span>(<span class="fu">DimensionMismatch</span>())</span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@inbounds</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>N</span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>        y[i] <span class="op">=</span> x[i] <span class="op">-</span> x[<span class="fu">mod1</span>(i <span class="op">-</span> <span class="fl">1</span>, N)]</span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> y</span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Overwrite y with A&#39; * x</span></span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a><span class="co"># minus right difference</span></span>
+<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">mrightdiff!</span>(y<span class="op">::</span><span class="dt">AbstractVector</span>, x<span class="op">::</span><span class="dt">AbstractVector</span>) </span>
+<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a>    N <span class="op">=</span> <span class="fu">length</span>(x)</span>
+<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">length</span>(y) <span class="op">==</span> N <span class="op">||</span> <span class="fu">throw</span>(<span class="fu">DimensionMismatch</span>())</span>
+<span id="cb35-19"><a href="#cb35-19" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@inbounds</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>N</span>
+<span id="cb35-20"><a href="#cb35-20" aria-hidden="true" tabindex="-1"></a>        y[i] <span class="op">=</span> x[i] <span class="op">-</span> x[<span class="fu">mod1</span>(i <span class="op">+</span> <span class="fl">1</span>, N)]</span>
+<span id="cb35-21"><a href="#cb35-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
+<span id="cb35-22"><a href="#cb35-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> y</span>
+<span id="cb35-23"><a href="#cb35-23" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb35-24"><a href="#cb35-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-25"><a href="#cb35-25" aria-hidden="true" tabindex="-1"></a><span class="co"># define linear map</span></span>
+<span id="cb35-26"><a href="#cb35-26" aria-hidden="true" tabindex="-1"></a>D <span class="op">=</span> <span class="fu">LinearMap</span><span class="dt">{Float64}</span>(leftdiff!, mrightdiff!, <span class="fl">100</span>; ismutating<span class="op">=</span><span class="cn">true</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="19">
 <pre><code>100×100 FunctionMap{Float64,true}(leftdiff!, mrightdiff!; issymmetric=false, ishermitian=false, isposdef=false)</code></pre>
 </div>
 </div>
 <p>Linear maps can be used like a regular matrix.</p>
-<div class="cell" data-tags="[]" data-execution_count="17">
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@show</span> <span class="fu">size</span>(D)</span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>v <span class="op">=</span> <span class="fu">ones</span>(<span class="fu">size</span>(D, <span class="fl">2</span>)) <span class="co"># vector of all 1s</span></span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="pp">@show</span> D <span class="op">*</span> v</span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@show</span> D<span class="op">&#39;</span> <span class="op">*</span> v;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-tags="[]" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@show</span> <span class="fu">size</span>(D)</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>v <span class="op">=</span> <span class="fu">ones</span>(<span class="fu">size</span>(D, <span class="fl">2</span>)) <span class="co"># vector of all 1s</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="pp">@show</span> D <span class="op">*</span> v</span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@show</span> D<span class="op">&#39;</span> <span class="op">*</span> v;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>size(D) = (100, 100)
 D * v = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
@@ -3292,9 +3353,9 @@ D&#39; * v = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0
 </div>
 </div>
 <p>If we form the corresponding dense matrix, it will look like</p>
-<div class="cell" data-tags="[]" data-execution_count="18">
-<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">Matrix</span>(D)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="18">
+<div class="cell" data-tags="[]" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">Matrix</span>(D)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="21">
 <pre><code>100×100 Matrix{Float64}:
   1.0   0.0   0.0   0.0   0.0   0.0  …   0.0   0.0   0.0   0.0   0.0  -1.0
  -1.0   1.0   0.0   0.0   0.0   0.0      0.0   0.0   0.0   0.0   0.0   0.0
@@ -3325,10 +3386,10 @@ D&#39; * v = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0
 </div>
 </div>
 <p>If we form the corresponding sparse matrix, it will look like</p>
-<div class="cell" data-tags="[]" data-execution_count="19">
-<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">SparseArrays</span></span>
-<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sparse</span>(D)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="19">
+<div class="cell" data-tags="[]" data-execution_count="22">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">SparseArrays</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sparse</span>(D)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="22">
 <pre><code>100×100 SparseMatrixCSC{Float64, Int64} with 200 stored entries:
 ⠳⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈
 ⠀⠈⠳⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -3352,10 +3413,10 @@ D&#39; * v = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠳⣄</code></pre>
 </div>
 </div>
-<div class="cell" data-tags="[]" data-execution_count="20">
-<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">UnicodePlots</span></span>
-<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="fu">spy</span>(<span class="fu">sparse</span>(D))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="20">
+<div class="cell" data-tags="[]" data-execution_count="23">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">UnicodePlots</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="fu">spy</span>(<span class="fu">sparse</span>(D))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="23">
 <div class="ansi-escaped-output">
 <pre>       <span class="ansi-bright-black-fg">┌──────────────────────────────────────────┐</span>    
      <span class="ansi-bright-black-fg">1</span> <span class="ansi-bright-black-fg">│</span><span class="ansi-magenta-fg">⠳</span><span class="ansi-magenta-fg">⣄</span>⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀<span class="ansi-blue-fg">⠈</span><span class="ansi-bright-black-fg">│</span> <span class="ansi-red-fg">&gt; 0</span>
@@ -3386,18 +3447,18 @@ D&#39; * v = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0
 </div>
 </div>
 <p>Compute top singular values using iterative method (Arnoldi).</p>
-<div class="cell" data-tags="[]" data-execution_count="21">
-<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Arpack</span></span>
-<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>Arpack.<span class="fu">svds</span>(D, nsv <span class="op">=</span> <span class="fl">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="21">
+<div class="cell" data-tags="[]" data-execution_count="24">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Arpack</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>Arpack.<span class="fu">svds</span>(D, nsv <span class="op">=</span> <span class="fl">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="24">
 <pre><code>(SVD{Float64, Float64, Matrix{Float64}, Vector{Float64}}([-0.10000000000003784 -0.12610107456829575 0.06401967660582586; 0.10000000000003065 0.12987207165686732 -0.05597539641260025; … ; -0.1000000000000521 -0.11708293685000366 0.07931951776561391; 0.10000000000004498 0.12183241414850406 -0.07181130038329539], [1.999999999999991, 1.999013120731463, 1.999013120731457], [-0.10000000000003396 0.10000000000002691 … -0.10000000000004843 0.10000000000004114; -0.12804975793830697 0.1315662173203481 … -0.11951664975119619 0.12402794466205336; 0.06002715628725726 -0.05186839557967478 … 0.07560271445022253 -0.06794901723277247]), 3, 32, 526, [0.04258949839207237, 0.14721604804533064, -0.011022034322333656, 0.05622695730309966, -0.18486947987539046, -0.06893624219396152, -0.058094777857784594, -0.029289396615192375, -0.07254854992344173, -0.00975416583922165  …  0.024831913415879165, -0.13578084697251516, 0.02681766807280268, -0.08554983305702116, 0.04044885519724034, 0.04633598288333846, 0.04804027361050814, 0.08825454846822017, 0.04845254033517858, 0.16996721894328326])</code></pre>
 </div>
 </div>
-<div class="cell" data-tags="[]" data-execution_count="22">
-<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">LinearAlgebra</span></span>
-<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="co"># check solution against the direct method for SVD</span></span>
-<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a><span class="fu">svdvals</span>(<span class="fu">Matrix</span>(D))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="22">
+<div class="cell" data-tags="[]" data-execution_count="25">
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">LinearAlgebra</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a><span class="co"># check solution against the direct method for SVD</span></span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a><span class="fu">svdvals</span>(<span class="fu">Matrix</span>(D))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="25">
 <pre><code>100-element Vector{Float64}:
  2.0
  1.9990131207314632
@@ -3428,9 +3489,9 @@ D&#39; * v = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0
 </div>
 </div>
 <p>Compute top eigenvalues of the Gram matrix <code>D&#39;D</code> using iterative method (Arnoldi).</p>
-<div class="cell" data-tags="[]" data-execution_count="23">
-<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>Arpack.<span class="fu">eigs</span>(D<span class="op">&#39;</span>D, nev <span class="op">=</span> <span class="fl">3</span>, which <span class="op">=</span> <span class="op">:</span>LM)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="23">
+<div class="cell" data-tags="[]" data-execution_count="26">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>Arpack.<span class="fu">eigs</span>(D<span class="op">&#39;</span>D, nev <span class="op">=</span> <span class="fl">3</span>, which <span class="op">=</span> <span class="op">:</span>LM)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="26">
 <pre><code>([3.9999999999999907, 3.996053456856537, 3.9960534568565333], [0.09999999999998786 -0.009399690541663409 -0.14110863126584505; -0.09999999999998202 0.0005208581322834926 0.14142039706777043; … ; 0.10000000000000063 -0.027011172214567336 -0.13881785395111446; -0.09999999999999405 0.018241426666785143 0.14023997416271491], 3, 29, 477, [-0.11143136146466825, -0.09379191938271311, -0.26066819357025, -0.04821186674086208, -0.00044236861085249316, 0.14800776405222132, -0.11112031736267719, 0.07442363053822573, -0.04267710288965029, 0.23889296427901438  …  0.0065084972593795155, -0.05077322319654768, -0.1460426446406352, -0.026520846605774986, 0.11477751117771083, -0.060738880152664966, 0.16090083149646847, 0.13006045875353353, -0.12879338556316872, 0.05985490000934182])</code></pre>
 </div>
 </div>
