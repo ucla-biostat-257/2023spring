@@ -119,7 +119,7 @@ $$
 
     0. Given $\mathbf{x}^{(0)}$
     0. Initialize: $\mathbf{r}^{(0)} \gets \mathbf{A} \mathbf{x}^{(0)} - \mathbf{b}$, $\mathbf{p}^{(0)} \gets - \mathbf{r}^{(0)}$, $t=0$
-    0. While $\mathbf{r}^{(0)} \ne \mathbf{0}$
+    0. While $\mathbf{r}^{(t)} \ne \mathbf{0}$
         1. $\alpha^{(t)} \gets - \frac{\mathbf{r}^{(t)T} \mathbf{p}^{(t)}}{\mathbf{p}^{(t)T} \mathbf{A} \mathbf{p}^{(t)}}$
         2. $\mathbf{x}^{(t+1)} \gets \mathbf{x}^{(t)} + \alpha^{(t)} \mathbf{p}^{(t)}$
         3. $\mathbf{r}^{(t+1)} \gets \mathbf{A} \mathbf{x}^{(t+1)} - \mathbf{b}$
@@ -145,7 +145,7 @@ The iterates $\mathbf{x}^{(t)}$ converge to the solution in at most $n$ steps.
 
     0. Given $\mathbf{x}^{(0)}$
     0. Initialize: $\mathbf{r}^{(0)} \gets \mathbf{A} \mathbf{x}^{(0)} - \mathbf{b}$, $\mathbf{p}^{(0)} \gets - \mathbf{r}^{(0)}$, $t=0$
-    0. While $\mathbf{r}^{(0)} \ne \mathbf{0}$
+    0. While $\mathbf{r}^{(t)} \ne \mathbf{0}$
         1. $\alpha^{(t)} \gets \frac{\mathbf{r}^{(t)T} \mathbf{r}^{(t)}}{\mathbf{p}^{(t)T} \mathbf{A} \mathbf{p}^{(t)}}$
         2. $\mathbf{x}^{(t+1)} \gets \mathbf{x}^{(t)} + \alpha^{(t)} \mathbf{p}^{(t)}$
         3. $\mathbf{r}^{(t+1)} \gets \mathbf{r}^{(t)} + \alpha^{(t)} \mathbf{A} \mathbf{p}^{(t)}$
@@ -194,14 +194,13 @@ Choose $\mathbf{C}$ such that
     
 * Preconditioned CG does not make use of $\mathbf{C}$ explicitly, but rather the matrix $\mathbf{M} = \mathbf{C}^T \mathbf{C}$.
 
-
 * **Preconditioned CG (PCG)** algorithm: 
 
     0. Given $\mathbf{x}^{(0)}$, pre-conditioner $\mathbf{M}$
     0. $\mathbf{r}^{(0)} \gets \mathbf{A} \mathbf{x}^{(0)} - \mathbf{b}$
     0. solve $\mathbf{M} \mathbf{y}^{(0)} = \mathbf{r}^{(0)}$ for $\mathbf{y}^{(0)}$
     0. $\mathbf{p}^{(0)} \gets - \mathbf{r}^{(0)}$, $t=0$
-    0. While $\mathbf{r}^{(0)} \ne \mathbf{0}$
+    0. While $\mathbf{r}^{(t)} \ne \mathbf{0}$
         1. $\alpha^{(t)} \gets \frac{\mathbf{r}^{(t)T} \mathbf{y}^{(t)}}{\mathbf{p}^{(t)T} \mathbf{A} \mathbf{p}^{(t)}}$
         2. $\mathbf{x}^{(t+1)} \gets \mathbf{x}^{(t)} + \alpha^{(t)} \mathbf{p}^{(t)}$
         3. $\mathbf{r}^{(t+1)} \gets \mathbf{r}^{(t)} + \alpha^{(t)} \mathbf{A} \mathbf{p}^{(t)}$
@@ -278,7 +277,7 @@ norm(xcg - xpcg)
 Compute the incomplete cholesky preconditioner:
 
 ```{julia}
-@time p = CholeskyPreconditioner(A, 3)
+@time p = CholeskyPreconditioner(A, 2)
 dump(p)
 ```
 
@@ -357,7 +356,7 @@ x = gmres(@Afun, b)
 eigs(A)
 eigs(@Afun)
 ```
-    
+
 ### Julia
 
 * `eigs` and `svds` in the [Arpack.jl](https://github.com/JuliaLinearAlgebra/Arpack.jl) package. [Numerical examples](http://hua-zhou.github.io/teaching/biostatm280-2019spring/slides/17-eigsvd/eigsvd.html#Lanczos/Arnoldi-iterative-method-for-top-eigen-pairs) later.

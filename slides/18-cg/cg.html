@@ -2801,7 +2801,7 @@ Earlier we talked about Jacobi, Gauss-Seidel, and successive over-relaxation (SO
 <ol start="0" type="1">
 <li>Given <span class="math inline">\(\mathbf{x}^{(0)}\)</span></li>
 <li>Initialize: <span class="math inline">\(\mathbf{r}^{(0)} \gets \mathbf{A} \mathbf{x}^{(0)} - \mathbf{b}\)</span>, <span class="math inline">\(\mathbf{p}^{(0)} \gets - \mathbf{r}^{(0)}\)</span>, <span class="math inline">\(t=0\)</span></li>
-<li>While <span class="math inline">\(\mathbf{r}^{(0)} \ne \mathbf{0}\)</span>
+<li>While <span class="math inline">\(\mathbf{r}^{(t)} \ne \mathbf{0}\)</span>
 <ol type="1">
 <li><span class="math inline">\(\alpha^{(t)} \gets - \frac{\mathbf{r}^{(t)T} \mathbf{p}^{(t)}}{\mathbf{p}^{(t)T} \mathbf{A} \mathbf{p}^{(t)}}\)</span></li>
 <li><span class="math inline">\(\mathbf{x}^{(t+1)} \gets \mathbf{x}^{(t)} + \alpha^{(t)} \mathbf{p}^{(t)}\)</span></li>
@@ -2828,7 +2828,7 @@ The iterates <span class="math inline">\(\mathbf{x}^{(t)}\)</span> converge to t
 <ol start="0" type="1">
 <li>Given <span class="math inline">\(\mathbf{x}^{(0)}\)</span></li>
 <li>Initialize: <span class="math inline">\(\mathbf{r}^{(0)} \gets \mathbf{A} \mathbf{x}^{(0)} - \mathbf{b}\)</span>, <span class="math inline">\(\mathbf{p}^{(0)} \gets - \mathbf{r}^{(0)}\)</span>, <span class="math inline">\(t=0\)</span></li>
-<li>While <span class="math inline">\(\mathbf{r}^{(0)} \ne \mathbf{0}\)</span>
+<li>While <span class="math inline">\(\mathbf{r}^{(t)} \ne \mathbf{0}\)</span>
 <ol type="1">
 <li><span class="math inline">\(\alpha^{(t)} \gets \frac{\mathbf{r}^{(t)T} \mathbf{r}^{(t)}}{\mathbf{p}^{(t)T} \mathbf{A} \mathbf{p}^{(t)}}\)</span></li>
 <li><span class="math inline">\(\mathbf{x}^{(t+1)} \gets \mathbf{x}^{(t)} + \alpha^{(t)} \mathbf{p}^{(t)}\)</span></li>
@@ -2884,7 +2884,7 @@ Consider PageRank problem, <span class="math inline">\(\mathbf{A}\)</span> has d
 <li><span class="math inline">\(\mathbf{r}^{(0)} \gets \mathbf{A} \mathbf{x}^{(0)} - \mathbf{b}\)</span></li>
 <li>solve <span class="math inline">\(\mathbf{M} \mathbf{y}^{(0)} = \mathbf{r}^{(0)}\)</span> for <span class="math inline">\(\mathbf{y}^{(0)}\)</span></li>
 <li><span class="math inline">\(\mathbf{p}^{(0)} \gets - \mathbf{r}^{(0)}\)</span>, <span class="math inline">\(t=0\)</span></li>
-<li>While <span class="math inline">\(\mathbf{r}^{(0)} \ne \mathbf{0}\)</span>
+<li>While <span class="math inline">\(\mathbf{r}^{(t)} \ne \mathbf{0}\)</span>
 <ol type="1">
 <li><span class="math inline">\(\alpha^{(t)} \gets \frac{\mathbf{r}^{(t)T} \mathbf{y}^{(t)}}{\mathbf{p}^{(t)T} \mathbf{A} \mathbf{p}^{(t)}}\)</span></li>
 <li><span class="math inline">\(\mathbf{x}^{(t+1)} \gets \mathbf{x}^{(t)} + \alpha^{(t)} \mathbf{p}^{(t)}\)</span></li>
@@ -2995,13 +2995,13 @@ Consider PageRank problem, <span class="math inline">\(\mathbf{A}\)</span> has d
 <span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@benchmark</span> <span class="fu">cg</span>(<span class="op">$</span>A, <span class="op">$</span>b)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="6">
 <div class="ansi-escaped-output">
-<pre>BenchmarkTools.Trial: 49 samples with 1 evaluation.
- Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">102.594 ms</span> … <span class="ansi-magenta-fg">114.533 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">102.973 ms               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">103.365 ms</span> ± <span class="ansi-green-fg">  1.720 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.00% ± 0.00%
-  █▄<span class="ansi-blue-fg">▂</span> <span class="ansi-green-fg"> </span>                                                          
-  ██<span class="ansi-blue-fg">█</span>▄<span class="ansi-green-fg">▄</span>▅▄▄▁▁▁▃▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃ ▁
-  103 ms<span class="ansi-bright-black-fg">           Histogram: frequency by time</span>          115 ms <span class="ansi-bold">&lt;</span>
+<pre>BenchmarkTools.Trial: 37 samples with 1 evaluation.
+ Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">135.707 ms</span> … <span class="ansi-magenta-fg">162.602 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">136.210 ms               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">137.365 ms</span> ± <span class="ansi-green-fg">  4.789 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.00% ± 0.00%
+  █<span class="ansi-blue-fg">▅</span>  <span class="ansi-green-fg"> </span>                                                          
+  █<span class="ansi-blue-fg">█</span>▄▄<span class="ansi-green-fg">▃</span>▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃ ▁
+  136 ms<span class="ansi-bright-black-fg">           Histogram: frequency by time</span>          163 ms <span class="ansi-bold">&lt;</span>
  Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">951.14 KiB</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">16</span>.</pre>
 </div>
 </div>
@@ -3016,9 +3016,9 @@ Consider PageRank problem, <span class="math inline">\(\mathbf{A}\)</span> has d
 <span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@time</span> p <span class="op">=</span> <span class="fu">DiagonalPreconditioner</span>(A)</span>
 <span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="fu">dump</span>(p)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>  0.017999 seconds (59.32 k allocations: 4.745 MiB, 97.14% compilation time)
+<pre><code>  0.017532 seconds (59.32 k allocations: 4.745 MiB, 96.44% compilation time)
 DiagonalPreconditioner{Float64, Vector{Float64}}
-  D: Array{Float64}((30401,)) [7.774170996974972, 41.46224531719985, 14.932858015514414, 38.179664098877026, 16.978596211846156, 52.37284903096915, 13.86168691452821, 21.55614784651465, 14.196600657402943, 54.159055659634376  …  51.3986405971589, 11.438303453586828, 9.60564448863751, 13.061576693264229, 60.056097875438375, 19.455032347657614, 43.70407464540223, 20.295806637436748, 64.5402274209271, 12.10129264142383]</code></pre>
+  D: Array{Float64}((30401,)) [10.22544568279155, 54.5357103082216, 12.826351887882891, 13.871499760487152, 7.031155075854652, 23.627993977404333, 12.034480062736154, 40.55589969052182, 18.89433417600622, 60.21388258151134  …  10.432731311110011, 14.590070405614327, 67.38097751883308, 22.720770184399075, 53.796463464628665, 18.271684760432244, 43.652521924343304, 12.531173817675096, 23.180405103257222, 4.346325956860729]</code></pre>
 </div>
 </div>
 <div class="cell" data-tags="[]" data-execution_count="8">
@@ -3027,7 +3027,7 @@ DiagonalPreconditioner{Float64, Vector{Float64}}
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co"># same answer?</span></span>
 <span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="fu">norm</span>(xcg <span class="op">-</span> xpcg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="8">
-<pre><code>5.106824817763078e-7</code></pre>
+<pre><code>5.398453019613479e-7</code></pre>
 </div>
 </div>
 <div class="cell" data-tags="[]" data-execution_count="9">
@@ -3035,13 +3035,13 @@ DiagonalPreconditioner{Float64, Vector{Float64}}
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="pp">@benchmark</span> <span class="fu">cg</span>(<span class="op">$</span>A, <span class="op">$</span>b, Pl <span class="op">=</span> <span class="op">$</span>p)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="9">
 <div class="ansi-escaped-output">
-<pre>BenchmarkTools.Trial: 386 samples with 1 evaluation.
- Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">12.672 ms</span> … <span class="ansi-magenta-fg"> 16.781 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 22.56%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">12.869 ms               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">12.953 ms</span> ± <span class="ansi-green-fg">396.013 μs</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.22% ±  1.95%
-    ▇▆█▅▁<span class="ansi-blue-fg">▁</span>  <span class="ansi-green-fg">▂</span>                                                   
-  ▄▇█████<span class="ansi-blue-fg">█</span>██<span class="ansi-green-fg">█</span>▆▇▆▇▆▅▅▅▄▂▃▃▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▁▃▁▁▁▁▁▂▂ ▃
-  12.7 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>         14.4 ms <span class="ansi-bold">&lt;</span>
+<pre>BenchmarkTools.Trial: 394 samples with 1 evaluation.
+ Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">12.435 ms</span> … <span class="ansi-magenta-fg"> 14.974 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">12.660 ms               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">12.705 ms</span> ± <span class="ansi-green-fg">256.504 μs</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.12% ± 1.18%
+     ▃▆▇█<span class="ansi-blue-fg">█</span><span class="ansi-green-fg">▆</span>▃▃▂                                                  
+  ▄▆▆████<span class="ansi-blue-fg">█</span><span class="ansi-green-fg">█</span>████▅▄▆▅▄▄▁▆▁▁▄▁▁▄▄▄▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▄▁▄ ▆
+  12.4 ms<span class="ansi-bright-black-fg">       </span><span class="ansi-bright-black-fg">Histogram: </span><span class="ansi-bright-black-fg ansi-bold">log(</span><span class="ansi-bright-black-fg">frequency</span><span class="ansi-bright-black-fg ansi-bold">)</span><span class="ansi-bright-black-fg"> by time</span>      14.4 ms <span class="ansi-bold">&lt;</span>
  Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">951.14 KiB</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">16</span>.</pre>
 </div>
 </div>
@@ -3051,52 +3051,52 @@ DiagonalPreconditioner{Float64, Vector{Float64}}
 <h4 data-number="3.1.2" class="anchored" data-anchor-id="incomplete-cholesky-preconditioner"><span class="header-section-number">3.1.2</span> Incomplete Cholesky preconditioner</h4>
 <p>Compute the incomplete cholesky preconditioner:</p>
 <div class="cell" data-tags="[]" data-execution_count="10">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@time</span> p <span class="op">=</span> <span class="fu">CholeskyPreconditioner</span>(A, <span class="fl">3</span>)</span>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@time</span> p <span class="op">=</span> <span class="fu">CholeskyPreconditioner</span>(A, <span class="fl">2</span>)</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dump</span>(p)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>  0.348359 seconds (2.18 M allocations: 128.434 MiB, 5.12% gc time, 94.26% compilation time)
+<pre><code>  0.324356 seconds (2.18 M allocations: 127.970 MiB, 4.41% gc time, 94.51% compilation time)
 CholeskyPreconditioner{LimitedLDLFactorizations.LimitedLDLFactorization{Float64, Int64, Vector{Int64}, Vector{Int64}}}
   ldlt: LimitedLDLFactorizations.LimitedLDLFactorization{Float64, Int64, Vector{Int64}, Vector{Int64}}
     __factorized: Bool true
     n: Int64 30401
-    colptr: Array{Int64}((30402,)) [1, 13, 25, 38, 55, 67, 79, 91, 104, 121  …  287064, 287068, 287073, 287077, 287081, 287084, 287086, 287087, 287087, 287087]
-    rowind: Array{Int64}((311803,)) [3, 4, 5, 11, 12, 1557, 1558, 1559, 1599, 4639  …  30394, 30395, 30396, 30396, 30397, 30398, 30398, 30399, 30400, 30400]
+    colptr: Array{Int64}((30402,)) [1, 13, 25, 37, 54, 65, 77, 89, 101, 118  …  265018, 265021, 265025, 265028, 265032, 265035, 265037, 265038, 265038, 265038]
+    rowind: Array{Int64}((281402,)) [3, 4, 5, 11, 12, 1557, 1558, 1559, 1599, 4639  …  30394, 30395, 30396, 30396, 30397, 30398, 30398, 30399, 30400, 30400]
     Lrowind: SubArray{Int64, 1, Vector{Int64}, Tuple{UnitRange{Int64}}, true}
-      parent: Array{Int64}((311803,)) [3, 4, 5, 11, 12, 1557, 1558, 1559, 1599, 4639  …  30394, 30395, 30396, 30396, 30397, 30398, 30398, 30399, 30400, 30400]
+      parent: Array{Int64}((281402,)) [3, 4, 5, 11, 12, 1557, 1558, 1559, 1599, 4639  …  30394, 30395, 30396, 30396, 30397, 30398, 30398, 30399, 30400, 30400]
       indices: Tuple{UnitRange{Int64}}
         1: UnitRange{Int64}
           start: Int64 1
-          stop: Int64 287086
+          stop: Int64 265037
       offset1: Int64 0
       stride1: Int64 1
-    lvals: Array{Float64}((311803,)) [0.4657709692630465, -0.18749999999999997, 0.15922903073695346, 0.12738322458956278, -0.06369161229478137, 0.4657709692630464, -0.18749999999999994, -0.06369161229478139, 0.15922903073695344, -0.18630838770521863  …  -0.19650546207063904, -0.19232039308501836, 0.10505919250762698, -0.22784554107706556, -0.13952055929888446, 0.04399631691863041, -0.1348491710037475, -0.24378706205379694, 0.14543372967266255, -0.2613026214794272]
+    lvals: Array{Float64}((281402,)) [0.5231042887635314, -0.1875, 0.10189571123646846, 0.08151656898917478, -0.040758284494587384, 0.5231042887635315, -0.18749999999999997, -0.040758284494587384, 0.10189571123646846, -0.2092417155054126  …  -0.17192378697755945, -0.1888058368108667, 0.10581078637004135, -0.22960757659012265, -0.11535093883371636, 0.034455993692922716, -0.12663483184497698, -0.20831489235167305, 0.12034152957261698, -0.21809675337242582]
     Lnzvals: SubArray{Float64, 1, Vector{Float64}, Tuple{UnitRange{Int64}}, true}
-      parent: Array{Float64}((311803,)) [0.4657709692630465, -0.18749999999999997, 0.15922903073695346, 0.12738322458956278, -0.06369161229478137, 0.4657709692630464, -0.18749999999999994, -0.06369161229478139, 0.15922903073695344, -0.18630838770521863  …  -0.19650546207063904, -0.19232039308501836, 0.10505919250762698, -0.22784554107706556, -0.13952055929888446, 0.04399631691863041, -0.1348491710037475, -0.24378706205379694, 0.14543372967266255, -0.2613026214794272]
+      parent: Array{Float64}((281402,)) [0.5231042887635314, -0.1875, 0.10189571123646846, 0.08151656898917478, -0.040758284494587384, 0.5231042887635315, -0.18749999999999997, -0.040758284494587384, 0.10189571123646846, -0.2092417155054126  …  -0.17192378697755945, -0.1888058368108667, 0.10581078637004135, -0.22960757659012265, -0.11535093883371636, 0.034455993692922716, -0.12663483184497698, -0.20831489235167305, 0.12034152957261698, -0.21809675337242582]
       indices: Tuple{UnitRange{Int64}}
         1: UnitRange{Int64}
           start: Int64 1
-          stop: Int64 287086
+          stop: Int64 265037
       offset1: Int64 0
       stride1: Int64 1
     nnz_diag: Int64 30401
-    adiag: Array{Float64}((30401,)) [7.774170996974972, 41.46224531719985, 14.932858015514414, 38.179664098877026, 16.978596211846156, 52.37284903096915, 13.86168691452821, 21.55614784651465, 14.196600657402943, 54.159055659634376  …  51.3986405971589, 11.438303453586828, 9.60564448863751, 13.061576693264229, 60.056097875438375, 19.455032347657614, 43.70407464540223, 20.295806637436748, 64.5402274209271, 12.10129264142383]
-    D: Array{Float64}((30401,)) [60.24626267150246, 77.90257745226796, 45.27594009116725, 20.660829608398846, 53.27872139900099, 49.64949255797133, 118.08506787498175, 60.0333054631261, 25.12126152519609, 67.18225811104041  …  17.421069461690468, 42.23913081617646, 18.857430196463785, 40.37754793841551, 13.076297771824503, 19.578418452567785, 13.93861138712909, 42.51089332443041, 10.580141491538484, 36.48221494786407]
+    adiag: Array{Float64}((30401,)) [10.22544568279155, 54.5357103082216, 12.826351887882891, 13.871499760487152, 7.031155075854652, 23.627993977404333, 12.034480062736154, 40.55589969052182, 18.89433417600622, 60.21388258151134  …  10.432731311110011, 14.590070405614327, 67.38097751883308, 22.720770184399075, 53.796463464628665, 18.271684760432244, 43.652521924343304, 12.531173817675096, 23.180405103257222, 4.346325956860729]
+    D: Array{Float64}((30401,)) [75.00968538766729, 79.28803789535466, 59.62498031365897, 22.949266214514232, 50.60628284427254, 36.75761101860171, 78.33305246002078, 34.86264016145856, 17.27517849252949, 48.75799934815756  …  28.782792441979897, 34.33421950635495, 16.447573622258805, 36.327469417210914, 10.945522146089326, 11.293138280275826, 8.854221803177621, 25.99847665656258, 6.449420388294696, 19.312488612406398]
     P: Array{Int64}((30401,)) [5112, 5414, 5290, 5291, 5292, 5114, 5416, 5294, 5295, 5296  …  29131, 29261, 29429, 29563, 29731, 29865, 30033, 30167, 30335, 19305]
     α: Float64 0.0
     α_increase_factor: Float64 10.0
     α_out: Float64 0.0
-    memory: Int64 3
+    memory: Int64 2
     Pinv: Array{Int64}((30401,)) [22084, 22085, 22100, 22092, 22094, 22093, 22170, 22010, 22012, 22011  …  6621, 6624, 6622, 6659, 6634, 6642, 6635, 6640, 6637, 6638]
-    wa1: Array{Float64}((30401,)) [80.54792571082181, 106.70647496935601, 79.68994602840684, 47.92689194790541, 107.50462744688559, 64.73315902530675, 151.73489350918678, 97.29094391876166, 57.502430835828896, 124.5868524319069  …  50.63568036684449, 112.15431443227756, 55.508205225504035, 106.21521777616637, 39.548206531058874, 37.88832312454793, 42.33569061422878, 118.02986443765339, 36.85024863122919, 98.0601657180297]
-    s: Array{Float64}((30401,)) [0.11142247973875728, 0.09680652110608393, 0.11202068748345742, 0.14444761216898291, 0.09644648863780006, 0.12429011770100179, 0.08118153669907906, 0.10138268563337113, 0.13187330720983448, 0.08959089868907116  …  0.14053085065554363, 0.09442609015929096, 0.13422128964418487, 0.09703013330896199, 0.15901445433049677, 0.16246032127142784, 0.15369037690097764, 0.09204581466022771, 0.16473268943010824, 0.10098426028032755]
-    w: Array{Float64}((30401,)) [0.0, 0.0, 0.13464250647797327, -0.11895102260978459, -0.20600254779808083, 0.0, 0.0, 0.3636348140971991, -0.11034793027466858, -0.2176852607485413  …  -0.06952725645155644, 0.020047478294242152, -0.05562605908749839, -0.07341555753666258, -0.06219970748519868, -0.15529204430403523, -0.10177503543375246, 0.001664855664904685, -0.043333881129982904, 0.0016573469995570058]
-    indr: Array{Int64}((30401,)) [30400, 30400, 30400, 30400, 30399, 30397, 30395, 30397, 30395, 30348  …  220591, 220592, 220594, 220595, 220597, 220598, 220600, 220601, 220601, 220601]
-    indf: Array{Int64}((30401,)) [11, 23, 36, 53, 65, 77, 89, 102, 119, 131  …  287062, 287066, 287071, 287075, 287079, 287082, 287084, 0, 0, 0]
-    list: Array{Int64}((30401,)) [4, 28, 4637, 3, 4, 67, 8, 6, 68, 1560  …  7373, 18410, 18387, 18410, 7344, 18391, 7339, 30398, 0, 0]
+    wa1: Array{Float64}((30401,)) [103.69296599267771, 106.44816995776756, 110.33169793814027, 53.3764134358725, 99.75060865171298, 52.38804878006546, 100.57304424859754, 61.178790281202524, 39.935584789491216, 93.08817154191605  …  86.25209476169196, 102.41490150032965, 54.87554684589229, 104.8838993162198, 37.10541247414502, 24.72310285309287, 30.787411382686372, 84.36228558059938, 28.087650385878014, 39.1592873847572]
+    s: Array{Float64}((30401,)) [0.09820313482278212, 0.09692390432842846, 0.09520282796197492, 0.13687536986346988, 0.1001249293950945, 0.13816049749365397, 0.09971470344844803, 0.1278496541068593, 0.15824134871852277, 0.10364604868319821  …  0.1076750728623675, 0.09881398731434961, 0.13499278879235466, 0.0976440057297431, 0.16416530132383536, 0.20111687498358188, 0.18022432706761254, 0.10887441421031661, 0.18868713690339678, 0.1598021470338802]
+    w: Array{Float64}((30401,)) [0.07133070293419384, 0.030722517422547106, 0.148526060651414, -0.13896315848176116, -0.19193396037159913, 0.03396652202626995, 0.08119181932892428, 0.40147227326691004, -0.10650960441032821, -0.22198751251497612  …  -0.0755470567316685, 0.08539740502292292, -0.062307730383196605, -0.013189064080058314, -0.02627564441741181, -0.06844204226109589, -0.10184966947092891, 0.0050825490642796185, -0.036405969309298646, 0.003202680142822931]
+    indr: Array{Int64}((30401,)) [30400, 30400, 30400, 30400, 30398, 30398, 30396, 30394, 30396, 30346  …  220591, 220592, 220594, 220595, 220597, 220598, 220600, 220601, 220601, 220601]
+    indf: Array{Int64}((30401,)) [11, 23, 35, 52, 63, 75, 87, 99, 116, 127  …  265016, 265019, 265023, 265026, 265030, 265033, 265035, 0, 0, 0]
+    list: Array{Int64}((30401,)) [4, 12, 4, 4637, 3, 9, 8, 12, 482, 68  …  7373, 30388, 18410, 18409, 7345, 0, 7339, 30398, 0, 0]
     pos: Array{Int64}((30401,)) [1, 2, 3, 4, 5, 6, 7, 8, 9, 10  …  30392, 30393, 30394, 30395, 30396, 30397, 30398, 30399, 30400, 30401]
     neg: Array{Int64}((0,)) Int64[]
     computed_posneg: Bool false
-  memory: Int64 3</code></pre>
+  memory: Int64 2</code></pre>
 </div>
 </div>
 <p>Pre-conditioned conjugate gradient:</p>
@@ -3106,7 +3106,7 @@ CholeskyPreconditioner{LimitedLDLFactorizations.LimitedLDLFactorization{Float64,
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="co"># same answer?</span></span>
 <span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="fu">norm</span>(xcg <span class="op">-</span> xpcg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="11">
-<pre><code>5.150315658956341e-7</code></pre>
+<pre><code>5.402457562263577e-7</code></pre>
 </div>
 </div>
 <div class="cell" data-tags="[]" data-execution_count="12">
@@ -3115,12 +3115,12 @@ CholeskyPreconditioner{LimitedLDLFactorizations.LimitedLDLFactorization{Float64,
 <div class="cell-output cell-output-display" data-execution_count="12">
 <div class="ansi-escaped-output">
 <pre>BenchmarkTools.Trial: 361 samples with 1 evaluation.
- Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">13.670 ms</span> … <span class="ansi-magenta-fg"> 19.968 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 30.69%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">13.808 ms               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">13.866 ms</span> ± <span class="ansi-green-fg">425.852 μs</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.25% ±  2.17%
-       ▇█<span class="ansi-blue-fg">▅</span>▅  <span class="ansi-green-fg"> </span>                                                  
-  ▃▃▅▆███<span class="ansi-blue-fg">█</span>██▇<span class="ansi-green-fg">▆</span>▄▄▄▄▄▂▃▃▂▃▁▁▂▁▁▁▂▁▁▂▂▁▁▁▁▁▁▁▂▁▁▁▁▁▁▁▁▁▂▁▁▁▁▁▁▁▁▂ ▃
-  13.7 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>         14.8 ms <span class="ansi-bold">&lt;</span>
+ Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">13.589 ms</span> … <span class="ansi-magenta-fg"> 16.957 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 18.78%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">13.835 ms               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">13.876 ms</span> ± <span class="ansi-green-fg">298.116 μs</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.18% ±  1.61%
+          ▁▅▆█<span class="ansi-blue-fg">▆</span>▇<span class="ansi-green-fg">▄</span>                                               
+  ▃▃▃▄▄▅▆▇████<span class="ansi-blue-fg">█</span>█<span class="ansi-green-fg">█</span>▇▅▄▃▄▃▃▂▃▃▁▃▂▂▂▁▁▁▁▁▁▁▁▁▃▁▁▁▁▂▁▁▁▁▁▁▁▁▂▁▁▁▁▂▂ ▃
+  13.6 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>         14.8 ms <span class="ansi-bold">&lt;</span>
  Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">951.14 KiB</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">16</span>.</pre>
 </div>
 </div>
@@ -3134,25 +3134,25 @@ CholeskyPreconditioner{LimitedLDLFactorizations.LimitedLDLFactorization{Float64,
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="pp">@time</span> ml <span class="op">=</span> <span class="fu">AMGPreconditioner</span><span class="dt">{RugeStuben}</span>(A) <span class="co"># Construct a Ruge-Stuben solver</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>  1.049475 seconds (5.70 M allocations: 357.822 MiB, 5.15% gc time, 97.64% compilation time)</code></pre>
+<pre><code>  1.000778 seconds (5.70 M allocations: 357.450 MiB, 5.08% gc time, 96.34% compilation time)</code></pre>
 </div>
 <div class="cell-output cell-output-display" data-execution_count="13">
 <pre><code>AMGPreconditioner{RugeStuben, AlgebraicMultigrid.MultiLevel{AlgebraicMultigrid.Pinv{Float64}, GaussSeidel{SymmetricSweep}, GaussSeidel{SymmetricSweep}, SparseMatrixCSC{Float64, Int64}, Adjoint{Float64, SparseMatrixCSC{Float64, Int64}}, SparseMatrixCSC{Float64, Int64}, AlgebraicMultigrid.MultiLevelWorkspace{Vector{Float64}, 1}}, AlgebraicMultigrid.V}(Multilevel Solver
 -----------------
-Operator Complexity: 1.136
-Grid Complexity: 1.173
+Operator Complexity: 1.133
+Grid Complexity: 1.171
 No. of Levels: 8
 Coarse Solver: Pinv
 Level     Unknowns     NonZeros
 -----     --------     --------
-    1        30401       471601 [88.05%]
-    2         3611        45311 [ 8.46%]
-    3         1090        13164 [ 2.46%]
-    4          361         3937 [ 0.74%]
-    5          117         1083 [ 0.20%]
-    6           44          354 [ 0.07%]
-    7           18          124 [ 0.02%]
-    8            6           26 [ 0.00%]
+    1        30401       471601 [88.28%]
+    2         3589        44617 [ 8.35%]
+    3         1083        12821 [ 2.40%]
+    4          348         3702 [ 0.69%]
+    5          114         1038 [ 0.19%]
+    6           38          292 [ 0.05%]
+    7           14           90 [ 0.02%]
+    8            5           25 [ 0.00%]
 , AlgebraicMultigrid.V())</code></pre>
 </div>
 </div>
@@ -3162,20 +3162,20 @@ Level     Unknowns     NonZeros
 <span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="co"># same answer?</span></span>
 <span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="fu">norm</span>(xcg <span class="op">-</span> xamg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="14">
-<pre><code>5.060940530051128e-7</code></pre>
+<pre><code>5.302707566339999e-7</code></pre>
 </div>
 </div>
 <div class="cell" data-tags="[]" data-execution_count="15">
 <div class="sourceCode cell-code" id="cb28"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@benchmark</span> <span class="fu">cg</span>(<span class="op">$</span>A, <span class="op">$</span>b, Pl <span class="op">=</span> <span class="op">$</span>ml)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="15">
 <div class="ansi-escaped-output">
-<pre>BenchmarkTools.Trial: 105 samples with 1 evaluation.
- Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">46.868 ms</span> … <span class="ansi-magenta-fg"> 50.136 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">47.869 ms               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">47.871 ms</span> ± <span class="ansi-green-fg">504.177 μs</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.00% ± 0.00%
-           █▃        ▁  ▁▁    ▁<span class="ansi-blue-fg"> </span>       ▆▆                       
-  ▄▁▁▁▁▁▁▄▆██▄▄▆▁▆▇▄▄█▄▆██▁▇▆▆█<span class="ansi-blue-fg">▆</span>▄▆▇▇▄▆▁██▄▄▇▇▇▇▆▄▄▄▁▄▁▁▁▁▁▄▁▁▄ ▄
-  46.9 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>           49 ms <span class="ansi-bold">&lt;</span>
+<pre>BenchmarkTools.Trial: 110 samples with 1 evaluation.
+ Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">45.135 ms</span> … <span class="ansi-magenta-fg"> 51.864 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 12.55%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">45.363 ms               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">45.508 ms</span> ± <span class="ansi-green-fg">689.680 μs</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.13% ±  1.20%
+    ▁▅▂▁█<span class="ansi-blue-fg"> </span>▁▆ <span class="ansi-green-fg"> </span>                                                  
+  ▄▇█████<span class="ansi-blue-fg">▇</span>██▅<span class="ansi-green-fg">▇</span>▁▄▃▁▃▁▅▁▄▁▁▁▁▃▁▁▁▃▃▃▁▃▁▁▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▁▁▁▁▁▃ ▃
+  45.1 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>         47.2 ms <span class="ansi-bold">&lt;</span>
  Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">951.14 KiB</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">16</span>.</pre>
 </div>
 </div>
@@ -3240,12 +3240,12 @@ Level     Unknowns     NonZeros
 <div class="cell-output cell-output-display" data-execution_count="16">
 <div class="ansi-escaped-output">
 <pre>BenchmarkTools.Trial: 4 samples with 1 evaluation.
- Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">1.566 s</span> … <span class="ansi-magenta-fg">  1.734 s</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.42% … 5.62%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">1.614 s              </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>2.85%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">1.632 s</span> ± <span class="ansi-green-fg">77.108 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>3.00% ± 2.88%
-  █   <span class="ansi-blue-fg">█</span>                 <span class="ansi-green-fg"> </span>     █                           █  
-  █▁▁▁<span class="ansi-blue-fg">█</span>▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁<span class="ansi-green-fg">▁</span>▁▁▁▁▁█▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█ ▁
-  1.57 s<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>        1.73 s <span class="ansi-bold">&lt;</span>
+ Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">1.577 s</span> … <span class="ansi-magenta-fg">  1.673 s</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.50% … 5.86%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">1.621 s              </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>2.89%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">1.623 s</span> ± <span class="ansi-green-fg">49.826 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>3.07% ± 2.91%
+  █   <span class="ansi-blue-fg">█</span>                      <span class="ansi-green-fg"> </span>                   █        █  
+  █▁▁▁<span class="ansi-blue-fg">█</span>▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁<span class="ansi-green-fg">▁</span>▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█▁▁▁▁▁▁▁▁█ ▁
+  1.58 s<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>        1.67 s <span class="ansi-bold">&lt;</span>
  Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">1.43 GiB</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">178</span>.</pre>
 </div>
 </div>
@@ -3260,13 +3260,13 @@ Level     Unknowns     NonZeros
 </div>
 <div class="cell-output cell-output-display" data-execution_count="17">
 <div class="ansi-escaped-output">
-<pre>BenchmarkTools.Trial: 154 samples with 1 evaluation.
- Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">30.712 ms</span> … <span class="ansi-magenta-fg">40.783 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 21.37%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">31.682 ms              </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">32.465 ms</span> ± <span class="ansi-green-fg"> 1.874 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>2.38% ±  4.86%
-      ▃ █<span class="ansi-blue-fg">▂</span>     <span class="ansi-green-fg"> </span>                                               
-  ▂▁▃██▇█<span class="ansi-blue-fg">█</span>▆▆▆▄▃<span class="ansi-green-fg">▄</span>▁▁▁▂▁▁▁▃▂▁▁▁▁▂▃▁▃▄▁▁▃▁▃▃▁▁▁▁▁▁▁▂▄▁▁▁▂▂▂▂▁▁▁▁▂ ▂
-  30.7 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>        38.6 ms <span class="ansi-bold">&lt;</span>
+<pre>BenchmarkTools.Trial: 162 samples with 1 evaluation.
+ Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">29.940 ms</span> … <span class="ansi-magenta-fg"> 33.276 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 6.83%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">30.848 ms               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">31.050 ms</span> ± <span class="ansi-green-fg">709.774 μs</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.97% ± 2.05%
+               ▁▁▁▃ ▄<span class="ansi-blue-fg">▄</span>█  <span class="ansi-green-fg">▁</span>                                      
+  ▃▁▄▅▄▃▅▃▅▁▅▇█████▆█<span class="ansi-blue-fg">█</span>██▅<span class="ansi-green-fg">█</span>▄▄▃▄▄▁▁▁▁▁▃▁▁▃▃▃▁▃▁▃▃▅▄▁▄▄▁▄▅▄▄▅▃▁▃▃ ▃
+  29.9 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>         32.8 ms <span class="ansi-bold">&lt;</span>
  Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">17.54 MiB</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">1820</span>.</pre>
 </div>
 </div>
@@ -3281,13 +3281,13 @@ Level     Unknowns     NonZeros
 </div>
 <div class="cell-output cell-output-display" data-execution_count="18">
 <div class="ansi-escaped-output">
-<pre>BenchmarkTools.Trial: 225 samples with 1 evaluation.
- Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">21.190 ms</span> … <span class="ansi-magenta-fg">31.535 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 28.85%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">21.971 ms              </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">22.319 ms</span> ± <span class="ansi-green-fg"> 1.499 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>1.55% ±  4.99%
-   ▄▆▇█<span class="ansi-blue-fg">█</span>▇<span class="ansi-green-fg">▆</span>▄▁                                                   
-  ▅████<span class="ansi-blue-fg">█</span>█<span class="ansi-green-fg">█</span>██▆▅▅▁▅▁▁▁▁▁▁▁▁▅▁▁▁▁▅▅▅▅▁▁▅▅▅▁▁▁▁▅▁▁▁▁▁▁▁▅▁▁▁▁▁▅▁▁▅ ▆
-  21.2 ms<span class="ansi-bright-black-fg">      </span><span class="ansi-bright-black-fg">Histogram: </span><span class="ansi-bright-black-fg ansi-bold">log(</span><span class="ansi-bright-black-fg">frequency</span><span class="ansi-bright-black-fg ansi-bold">)</span><span class="ansi-bright-black-fg"> by time</span>      30.1 ms <span class="ansi-bold">&lt;</span>
+<pre>BenchmarkTools.Trial: 231 samples with 1 evaluation.
+ Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">21.098 ms</span> … <span class="ansi-magenta-fg"> 26.241 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 18.29%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">21.373 ms               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">21.654 ms</span> ± <span class="ansi-green-fg">961.050 μs</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>1.07% ±  3.62%
+   ▆█▇<span class="ansi-blue-fg">▅</span>▄▂<span class="ansi-green-fg">▁</span>▂                                                     
+  ████<span class="ansi-blue-fg">█</span>██<span class="ansi-green-fg">█</span>█▇▄▆▆▄▆▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▄▆▆█▄▁▁▁▁▄▄ ▆
+  21.1 ms<span class="ansi-bright-black-fg">       </span><span class="ansi-bright-black-fg">Histogram: </span><span class="ansi-bright-black-fg ansi-bold">log(</span><span class="ansi-bright-black-fg">frequency</span><span class="ansi-bright-black-fg ansi-bold">)</span><span class="ansi-bright-black-fg"> by time</span>      25.8 ms <span class="ansi-bold">&lt;</span>
  Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">6.27 MiB</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">801</span>.</pre>
 </div>
 </div>
