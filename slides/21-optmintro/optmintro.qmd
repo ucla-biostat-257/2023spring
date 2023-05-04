@@ -1,0 +1,76 @@
+---
+title: Optimization Introduction
+subtitle: Biostat/Biomath M257
+author: Dr. Hua Zhou @ UCLA
+date: today
+format:
+  html:
+    theme: cosmo
+    embed-resources: true
+    number-sections: true
+    toc: true
+    toc-depth: 4
+    toc-location: left
+    code-fold: false
+jupyter:
+  jupytext:
+    formats: 'ipynb,qmd'
+    text_representation:
+      extension: .qmd
+      format_name: quarto
+      format_version: '1.0'
+      jupytext_version: 1.14.5
+  kernelspec:
+    display_name: Julia (8 threads) 1.8.5
+    language: julia
+    name: julia-_8-threads_-1.8
+---
+
+# Introduction
+
+* Optimization considers the problem
+$$
+\begin{eqnarray*}
+    \text{minimize } f(\mathbf{x}) \\
+    \text{subject to constraints on } \mathbf{x}
+\end{eqnarray*}
+$$
+
+* Possible confusion:
+     * We (statisticians) talk about **maximization**: $\max \, L(\mathbf{\theta})$.
+     * People talk about **minimization** in the field of optimization: $\min \, f(\mathbf{x})$.
+
+* **Why** is optimization important in statistics? 
+    * Maximum likelihood estimation (MLE). 
+    * Maximum a posteriori (MAP) estimation in Bayesian framework.  
+    * Machine learning: minimize a loss + certain regularization.  
+    * ...
+    
+* Our major **goal** (or learning objectives) is to
+    * have a working knowledge of some commonly used optimization methods: 
+        * Newton type algorithms
+        * quasi-Newton algorithm
+        * expectation-maximization (EM) algorithm 
+        * majorization-minimization (MM) algorithm  
+        * convex programming with emphasis in statistical applications
+    * implement some of them in homework
+    * get to know some optimization tools in Julia
+
+* What's **not** covered in this course:
+    * Optimality conditions  
+    * Convergence theory 
+    * Convex analysis  
+    * Modern algorithms for large scale problems (ADMM, CD, proximal gradient, stochastic gradient, ...)
+    * Combinatorial optimization 
+    * Stochastic algorithms
+    * Many others
+    
+* You **must** take advantage of the great resources at UCLA. 
+    * Lieven Vandenberghe: EE236A (Linear Programming), **EE236B** (Convex Optimization), **EE236C** (Optimization Methods for Large-scale Systems). One of the best places to learn convex programming.  
+    * Kenneth Lange: Biomath 205 (Top Computational Algorithms). **The** best place to learn MM type algorithms.
+    
+<img src="./bv_cvxbook_cover.jpeg" width="200" align="center"/>
+
+<img src="./beck_firstorder_book.jpg" width="200" align="center"/>
+
+<img src="./lange_mm_book.jpg" width="200" align="center"/>
