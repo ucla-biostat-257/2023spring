@@ -14,7 +14,7 @@ format:
     code-fold: false
 jupyter:
   jupytext:
-    formats: 'ipynb,Rmd,qmd'
+    formats: 'ipynb,qmd'
     text_representation:
       extension: .qmd
       format_name: quarto
