@@ -206,6 +206,7 @@ using BenchmarkTools
 ## Sparse matrix
 
 Sparsity: sparse matrix decomposition or iterative method.  
+
 * The easiest recognizable structure. Familiarize yourself with the sparse matrix computation tools in Julia, Matlab, R (`Matrix` package), MKL (sparse BLAS), ... as much as possible.
 
 ```{julia}
@@ -260,6 +261,15 @@ using IterativeSolvers
 xcg = cg(A, b)
 @show norm(xcg - xchol)
 @benchmark cg($A, $b)
+```
+
+```{julia}
+# sparse solve via preconditioned conjugate gradient
+using Preconditioners
+
+xpcg = cg(A, b, Pl = DiagonalPreconditioner(A))
+@show norm(xpcg - xchol)
+@benchmark cg($A, $b, Pl = $(DiagonalPreconditioner(A)))
 ```
 
 ## Easy plus low rank
