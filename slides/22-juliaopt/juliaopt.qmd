@@ -21,9 +21,9 @@ jupyter:
       format_version: '1.0'
       jupytext_version: 1.14.5
   kernelspec:
-    display_name: Julia (8 threads) 1.8.5
+    display_name: Julia 1.9.0
     language: julia
-    name: julia-_8-threads_-1.8
+    name: julia-1.9
 ---
 
 System information (for reproducibility):
@@ -60,7 +60,7 @@ This lecture gives an overview of some optimization tools in Julia.
     
     4. Large scale optimization: ADMM, SGD, ...
     
-![Flowchart](./optimization_flowchart.png)    
+![Flowchart](./optimization_flowchart.png)
 
 ## Modeling tools and solvers
 
@@ -85,19 +85,19 @@ Getting familiar with **good** optimization softwares broadens the scope and sca
 |   Ipopt   |   |  x |      |      |                |     |    |  x  |       |   | x |    x   |   x   |    x   |   |   O  |  
 |   KNITRO  |   |  x |   x  |      |                |     |    |  x  |   x   |   | x |    x   |   x   |    x   |   |   $  |  
 
-* O: open source  
-* A: free academic license  
-* $: commercial
+    O: open source, A: free academic license, $: commercial
+
+* For more extended list of solvers, see [here](https://jump.dev/JuMP.jl/stable/installation/#Supported-solvers).
 
 * Difference between **modeling tool** and **solvers**
 
     - **Modeling tools** such as cvx (for Matlab) and Convex.jl (Julia analog of cvx) implement the disciplined convex programming (DCP) paradigm proposed by Grant and Boyd (2008) <http://stanford.edu/~boyd/papers/disc_cvx_prog.html>. DCP prescribes a set of simple rules from which users can construct convex optimization problems easily.
     
-    - **Solvers** (Mosek, Gurobi, Cplex, SCS, COSMO, ...) are concrete software implementation of optimization algorithms. My favorite ones are: Mosek/Gurobi/SCS for DCP and Ipopt/NLopt for nonlinear programming. Mosek and Gurobi are commercial software but free for academic use. SCS/Ipopt/NLopt are open source.  
+    - **Solvers** (Mosek, Gurobi, Cplex, SCS, COSMO, Hypatia, ...) are concrete software implementation of optimization algorithms. My favorite ones are: Mosek/Gurobi/SCS for DCP and Ipopt/NLopt for nonlinear programming. Mosek and Gurobi are commercial software but free for academic use. SCS/Ipopt/NLopt are open source.  
     
     - Modeling tools usually have the capability to use a variety of solvers. But modeling tools are solver agnostic so users do not have to worry about specific solver interface.
     
-* For this course, **install** following tools:
+* If you want to install the commercial solvers Gurobi or Mosek, instructions are below:
     - Gurobi: 1. Download Gurobi at [link](http://www.gurobi.com/downloads/gurobi-optimizer). 2. Request free academic license at [link](https://www.gurobi.com/academia/academic-program-and-licenses/). 3. Run `grbgetkey XXXXXXXXX` command on terminal as suggested. It'll retrieve a license file and put it under the home folder. 4. Set up the environmental variables. On my machine, I put following two lines in the `~/.julia/config/startup.jl` file: `ENV["GUROBI_HOME"] = "/Library/gurobi902/mac64"` and `ENV["GRB_LICENSE_FILE"] = "/Users/huazhou/Documents/Gurobi/gurobi.lic"`.  
     - Mosek: 1. Request free academic license at [link](https://www.mosek.com/products/academic-licenses/). The license file will be sent to your edu email within minutes. Check Spam folder if necessary. 2. Put the license file at the default location `~/mosek/`.
     - Convex.jl, SCS.jl, Gurobi.jl, Mosek.jl, MathProgBase.jl, NLopt.jl, Ipopt.jl.
@@ -252,6 +252,30 @@ problem.status, problem.optval, β̂cls.value
 sum(β̂cls.value)
 ```
 
+#### Hypatia
+
+Switch to the open source Hypatia (pure Julia) solver:
+
+```{julia}
+# Use Hypatia solver
+using Hypatia
+
+solver = Hypatia.Optimizer()
+MOI.set(solver, MOI.RawOptimizerAttribute("verbose"), 1)
+
+@time solve!(problem, solver)
+```
+
+```{julia}
+# Check the status, optimal value, and minimizer of the problem
+problem.status, problem.optval, β̂cls.value
+```
+
+```{julia}
+# check constraint satisfication
+sum(β̂cls.value)
+```
+
 ### Sum-to-zero lasso
 
 Suppose we want to know which organisms (OTU) are associated with the response. We can answer this question using a sum-to-zero contrained lasso
@@ -270,7 +294,7 @@ using Convex
 
 # # Use Gurobi solver
 # using Gurobi
-# solver = () -> Gurobi.Optimizer(OutputFlag=0)
+# solver = Gurobi.Optimizer(OutputFlag=0)
 
 # Use Cplex solver
 # using CPLEX
@@ -278,7 +302,11 @@ using Convex
 
 # # Use SCS solver
 # using SCS
-# solver = () -> SCS.Optimizer(verbose=0)
+# solver = SCS.Optimizer(verbose=0)
+
+# Use Hypatia solver
+using Hypatia
+solver = Hypatia.Optimizer()
 
 # solve at a grid of λ
 λgrid = 0:0.01:0.35
@@ -327,8 +355,8 @@ subject to the constraint $\sum_{j=1}^p \beta_j = 0$, where $\mathbf{\beta}_j$ a
 Let's assume each 10 contiguous OTUs belong to one Phylum.
 
 ```{julia}
-# Use Mosek solver
-using MosekTools
+# # Use Mosek solver
+# using MosekTools
 
 # # Use Gurobi solver
 # using Gurobi
@@ -340,6 +368,10 @@ using MosekTools
 # # Use SCS solver
 # using SCS
 # solver = SCSSolver(verbose=0)
+
+# Use Hypatia solver
+using Hypatia
+solver = Hypatia.Optimizer()
 
 # solve at a grid of λ
 λgrid = 0.0:0.005:0.5
@@ -404,11 +436,16 @@ $$
 $$
 Here $\|\mathbf{M}\|_* = \sum_i \sigma_i(\mathbf{M})$ is the nuclear norm. In words we seek the matrix with minimal nuclear norm that agrees with the observed entries. This is a semidefinite programming (SDP) problem readily modeled by Convex.jl.
 
-This example takes long because of high dimensionality.
+This example takes longer because of high dimensionality. COSMO.jl seems to be the fastest solver for this problem. Other solvers take excessively long time.
 
 ```{julia}
-# Use COSMO solver
+# # Use COSMO solver
 using COSMO
+solver = COSMO.Optimizer()
+
+# # Use Hypatia solver
+# using Hypatia
+# solver = Hypatia.Optimizer()
 
 # Linear indices of obs. entries
 obsidx = findall(Y[:] .≠ 0.0)
@@ -418,8 +455,7 @@ X = Variable(size(Y))
 problem = minimize(nuclearnorm(X))
 problem.constraints += X[obsidx] == Y[obsidx]
 # Solve the problem by calling solve
-# @time solve!(problem, () -> Mosek.Optimizer(LOG=1)) # Mosek takes about 20min
-@time solve!(problem, COSMO.Optimizer()) # fast
+@time solve!(problem, solver) # fast
 ```
 
 ```{julia}
