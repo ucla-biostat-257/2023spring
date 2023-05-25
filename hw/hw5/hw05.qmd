@@ -43,7 +43,7 @@ Pkg.status()
 
 In this exercise, we practice using disciplined convex programming (SDP in particular) to solve optimal design problems.
 
-## Introduction to Optimal design
+## Introduction to optimal design
 
 Consider a linear model
 \begin{eqnarray*}
@@ -111,7 +111,7 @@ Approximate Optimal Design
 
 ## Q3 (30 pts) Find exact optimal designs
 
-Using mixed-integer semidefinite programming (SDP) software to find the exact D-, E-, and A-optimal designs for this clinical trial.
+Using mixed-integer semidefinite programming (SDP) software to find the exact D-, E-, and A-optimal designs for this clinical trial **with $n=100$**.
 
 Hint: This is what I got. Apparently I haven't got the E-optimal design right yet.
 
@@ -150,3 +150,4 @@ $$
 $$
 
 Revisiting the 3x4 factorial design problem in Q1, suppose the drug company only cares about the estimation of A treatment effects. Find the approximate D-, E-, and A-optimal designs.
+
