@@ -1,0 +1,963 @@
+---
+title: Biostat/Biomath M257 Homework 6
+subtitle: 'Due June 9 @ 11:59PM'
+author: Student Name (UID)
+date: today
+format:
+  html:
+    theme: cosmo
+    embed-resources: true
+    number-sections: true
+    toc: true
+    toc-depth: 4
+    toc-location: left
+jupyter:
+  jupytext:
+    formats: 'ipynb,qmd'
+    text_representation:
+      extension: .qmd
+      format_name: quarto
+      format_version: '1.0'
+      jupytext_version: 1.14.5
+  kernelspec:
+    display_name: Julia 1.9.0
+    language: julia
+    name: julia-1.9
+---
+
+System information (for reproducibility):
+
+```{julia}
+versioninfo()
+```
+
+Load packages:
+
+```{julia}
+using Pkg
+
+Pkg.activate(pwd())
+Pkg.instantiate()
+Pkg.status()
+```
+
+In this assignment, we continue with the linear mixed effects model (LMM) considered in HW3
+$$
+    \mathbf{Y}_i = \mathbf{X}_i \boldsymbol{\beta} + \mathbf{Z}_i \boldsymbol{\gamma}_i + \boldsymbol{\epsilon}_i, \quad i=1,\ldots,n,
+$$
+where   
+- $\mathbf{Y}_i \in \mathbb{R}^{n_i}$ is the response vector of $i$-th individual,  
+- $\mathbf{X}_i \in \mathbb{R}^{n_i \times p}$ is the fixed effects predictor matrix of $i$-th individual,  
+- $\mathbf{Z}_i \in \mathbb{R}^{n_i \times q}$ is the random effects predictor matrix of $i$-th individual,  
+- $\boldsymbol{\epsilon}_i \in \mathbb{R}^{n_i}$ are multivariate normal $N(\mathbf{0}_{n_i},\sigma^2 \mathbf{I}_{n_i})$,  
+- $\boldsymbol{\beta} \in \mathbb{R}^p$ are fixed effects, and  
+- $\boldsymbol{\gamma}_i \in \mathbb{R}^q$ are random effects assumed to be $N(\mathbf{0}_q, \boldsymbol{\Sigma}_{q \times q}$) independent of $\boldsymbol{\epsilon}_i$.
+
+The log-likelihood of the $i$-th datum $(\mathbf{y}_i, \mathbf{X}_i, \mathbf{Z}_i)$ is 
+$$
+    \ell_i(\boldsymbol{\beta}, \mathbf{L}, \sigma_0^2) = - \frac{n_i}{2} \log (2\pi) - \frac{1}{2} \log \det \boldsymbol{\Omega}_i - \frac{1}{2} (\mathbf{y} - \mathbf{X}_i \boldsymbol{\beta})^T \boldsymbol{\Omega}_i^{-1} (\mathbf{y} - \mathbf{X}_i \boldsymbol{\beta}),
+$$
+where
+$$
+    \boldsymbol{\Omega}_i = \sigma^2 \mathbf{I}_{n_i} + \mathbf{Z}_i \boldsymbol{\Sigma} \mathbf{Z}_i^T = \sigma^2 \mathbf{I}_{n_i} + \mathbf{Z}_i \mathbf{L} \mathbf{L}^T \mathbf{Z}_i^T.
+$$
+Because the variance component parameter $\boldsymbol{\Sigma}$ has to be positive semidefinite. We prefer to use its Cholesky factor $\mathbf{L}$ as optimization variable. 
+
+Given $m$ independent data tuples $(\mathbf{y}_i, \mathbf{X}_i, \mathbf{Z}_i)$, $i=1,\ldots,m$, we seek the maximum likelihood estimate (MLE) by maximizing the log-likelihood
+$$
+\ell(\boldsymbol{\beta}, \boldsymbol{\Sigma}, \sigma^2) = \sum_{i=1}^m \ell_i(\boldsymbol{\beta}, \boldsymbol{\Sigma}, \sigma^2).
+$$
+In this assignment, we use the nonlinear programming (NLP) approach for optimization. In HW7, we will derive an EM (expectation-maximization) algorithm for the same problem. There is also an MM (minorization-maximization) algorithm for the same problem; see [this article](https://doi.org/10.1080/10618600.2018.1529601).
+
+```{julia}
+# load necessary packages; make sure install them first
+using BenchmarkTools, CSV, DataFrames, DelimitedFiles, Distributions
+using Ipopt, LinearAlgebra, MathOptInterface, MixedModels, NLopt
+using PrettyTables, Random, RCall
+
+const MOI = MathOptInterface
+```
+
+## Q1. (Optional, 30 bonus pts) Derivatives
+
+NLP optimization solvers expect users to provide at least a function for evaluating objective value. If users can provide further information such as gradient and Hessian, the NLP solvers will be more stable and converge faster. Automatic differentiation tools are becoming more powerful but cannot apply to all problems yet.
+
+1. Show that the gradient of $\ell_i$ is
+\begin{eqnarray*}
+\nabla_{\boldsymbol{\beta}} \ell_i(\boldsymbol{\beta}, \mathbf{L}, \sigma^2) &=& \mathbf{X}_i^T \boldsymbol{\Omega}_i^{-1} \mathbf{r}_i, \\
+\nabla_{\sigma^2} \ell_i(\boldsymbol{\beta}, \mathbf{L}, \sigma^2) &=& - \frac{1}{2} \operatorname{tr} (\boldsymbol{\Omega}_i^{-1}) + \frac{1}{2} \mathbf{r}_i^T \boldsymbol{\Omega}_i^{-2} \mathbf{r}_i, \\
+\frac{\partial}{\partial \mathbf{L}} \ell_i(\boldsymbol{\beta}, \mathbf{L}, \sigma^2) &=& - \mathbf{Z}_i^T \boldsymbol{\Omega}_i^{-1} \mathbf{Z}_i \mathbf{L} + \mathbf{Z}_i^T \boldsymbol{\Omega}_i^{-1} \mathbf{r}_i \mathbf{r}_i^T \boldsymbol{\Omega}_i^{-1} \mathbf{Z}_i \mathbf{L},
+\end{eqnarray*}
+where $\mathbf{r}_i = \mathbf{y}_i - \mathbf{X}_i \boldsymbol{\beta}$. 
+
+2. Derive the observed information matrix and the expected (Fisher) information matrix.
+
+If you need a refresher on multivariate calculus, my [Biostat 216 lecture notes](https://ucla-biostat216-2019fall.github.io/slides/16-matrixcalc/16-matrixcalc.html) may be helpful.
+
+## Q2. (20 pts) Objective and gradient evaluator for a single datum
+
+We expand the code from HW3 to evaluate both objective and gradient. I provide my code for HW3 below as a starting point. You do _not_ have to use this code. If your come up faster code, that's even better. 
+
+```{julia}
+# define a type that holds an LMM datum
+struct LmmObs{T <: AbstractFloat}
+    # data
+    y          :: Vector{T}
+    X          :: Matrix{T}
+    Z          :: Matrix{T}
+    # arrays for holding gradient
+    ∇β         :: Vector{T}
+    ∇σ²        :: Vector{T}
+    ∇Σ         :: Matrix{T}    
+    # working arrays
+    # TODO: whatever intermediate arrays you may want to pre-allocate
+    yty        :: T
+    xty        :: Vector{T}
+    zty        :: Vector{T}
+    storage_p  :: Vector{T}
+    storage_q  :: Vector{T}
+    xtx        :: Matrix{T}
+    ztx        :: Matrix{T}
+    ztz        :: Matrix{T}
+    storage_qq :: Matrix{T}
+end
+
+"""
+    LmmObs(y::Vector, X::Matrix, Z::Matrix)
+
+Create an LMM datum of type `LmmObs`.
+"""
+function LmmObs(
+        y::Vector{T}, 
+        X::Matrix{T}, 
+        Z::Matrix{T}
+    ) where T <: AbstractFloat
+    n, p, q    = size(X, 1), size(X, 2), size(Z, 2)    
+    ∇β         = Vector{T}(undef, p)
+    ∇σ²        = Vector{T}(undef, 1)
+    ∇Σ         = Matrix{T}(undef, q, q)    
+    yty        = abs2(norm(y))
+    xty        = transpose(X) * y
+    zty        = transpose(Z) * y    
+    storage_p  = Vector{T}(undef, p)
+    storage_q  = Vector{T}(undef, q)
+    xtx        = transpose(X) * X
+    ztx        = transpose(Z) * X
+    ztz        = transpose(Z) * Z
+    storage_qq = similar(ztz)
+    LmmObs(y, X, Z, ∇β, ∇σ², ∇Σ, 
+        yty, xty, zty, storage_p, storage_q, 
+        xtx, ztx, ztz, storage_qq)
+end
+
+"""
+    logl!(obs::LmmObs, β, L, σ², needgrad=false)
+
+Evaluate the log-likelihood of a single LMM datum at parameter values `β`, `L`, 
+and `σ²`. If `needgrad==true`, then `obs.∇β`, `obs.∇Σ`, and `obs.σ² are filled 
+with the corresponding gradient.
+"""
+function logl!(
+        obs      :: LmmObs{T}, 
+        β        :: Vector{T}, 
+        L        :: Matrix{T}, 
+        σ²       :: T,
+        needgrad :: Bool = true
+    ) where T <: AbstractFloat
+    n, p, q = size(obs.X, 1), size(obs.X, 2), size(obs.Z, 2)
+    ####################
+    # Evaluate objective
+    ####################    
+    # form the q-by-q matrix: M = σ² * I + Lt Zt Z L
+    copy!(obs.storage_qq, obs.ztz)
+    BLAS.trmm!('L', 'L', 'T', 'N', T(1), L, obs.storage_qq) # O(q^3)
+    BLAS.trmm!('R', 'L', 'N', 'N', T(1), L, obs.storage_qq) # O(q^3)
+    @inbounds for j in 1:q
+        obs.storage_qq[j, j] += σ²
+    end
+    # cholesky on M = σ² * I + Lt Zt Z L
+    LAPACK.potrf!('U', obs.storage_qq) # O(q^3)
+    # storage_q = (Mchol.U') \ (Lt * (Zt * res))
+    BLAS.gemv!('N', T(-1), obs.ztx, β, T(1), copy!(obs.storage_q, obs.zty)) # O(pq)
+    BLAS.trmv!('L', 'T', 'N', L, obs.storage_q)    # O(q^2)
+    BLAS.trsv!('U', 'T', 'N', obs.storage_qq, obs.storage_q) # O(q^3)
+    # l2 norm of residual vector
+    copy!(obs.storage_p, obs.xty)
+    rtr  = obs.yty +
+        dot(β, BLAS.gemv!('N', T(1), obs.xtx, β, T(-2), obs.storage_p))
+    # assemble pieces
+    logl::T = n * log(2π) + (n - q) * log(σ²) # constant term
+    @inbounds for j in 1:q
+        logl += 2log(obs.storage_qq[j, j])
+    end
+    qf    = abs2(norm(obs.storage_q)) # quadratic form term
+    logl += (rtr - qf) / σ² 
+    logl /= -2
+    ###################
+    # Evaluate gradient
+    ###################    
+    if needgrad
+        # TODO: fill ∇β, ∇L, ∇σ² by gradients
+        sleep(1e-3) # pretend this step takes 1ms
+    end    
+    ###################
+    # Return
+    ###################        
+    return logl    
+end
+```
+
+It is a good idea to test correctness and efficiency of the single datum objective/gradient evaluator here. First generate the same data set as in [HW3](https://ucla-biostat-257.github.io/2023spring/hw/hw3/hw03.html).
+
+```{julia}
+Random.seed!(257)
+
+# dimension
+n, p, q = 2000, 5, 3
+# predictors
+X  = [ones(n) randn(n, p - 1)]
+Z  = [ones(n) randn(n, q - 1)]
+# parameter values
+β  = [2.0; -1.0; rand(p - 2)]
+σ² = 1.5
+Σ  = fill(0.1, q, q) + 0.9I # compound symmetry 
+L  = Matrix(cholesky(Symmetric(Σ)).L)
+# generate y
+y  = X * β + Z * rand(MvNormal(Σ)) + sqrt(σ²) * randn(n)
+
+# form the LmmObs object
+obs = LmmObs(y, X, Z);
+```
+
+### Correctness
+
+```{julia}
+@show logl = logl!(obs, β, L, σ², true)
+@show obs.∇β
+@show obs.∇σ²
+@show obs.∇Σ;
+```
+
+You will lose all 20 points if following statement throws `AssertionError`.
+
+```{julia}
+@assert abs(logl - (-3256.1793358058258)) < 1e-4
+@assert norm(obs.∇β - [0.26698108057144054, 41.61418337067327, 
+        -34.34664962312689, 36.10898510707527, 27.913948208793144]) < 1e-4
+# @assert norm(obs.∇Σ - 
+#     [-0.9464482950697888 0.057792444809492895 -0.30244127639188767; 
+#         0.057792444809492895 -1.00087164917123 0.2845116557144694; 
+#         -0.30244127639188767 0.2845116557144694 1.170040927259726]) < 1e-4
+@assert abs(obs.∇σ²[1] - (1.6283715138412163)) < 1e-4
+```
+
+### Efficiency
+
+Benchmark for evaluating objective only. This is what we did in HW3.
+
+```{julia}
+@benchmark logl!($obs, $β, $L, $σ², false)
+```
+
+Benchmark for objective + gradient evaluation.
+
+```{julia}
+bm_objgrad = @benchmark logl!($obs, $β, $L, $σ², true)
+```
+
+My median runt time is 900ns. You will get full credit (10 pts) if the median run time is within 10μs.
+
+```{julia}
+#  The points you will get are
+clamp(10 / (median(bm_objgrad).time / 1e3) * 10, 0, 10)
+```
+
+## Q3. LmmModel type
+
+We create a `LmmModel` type to hold all data points and model parameters. Log-likelihood/gradient of a `LmmModel` object is simply the sum of log-likelihood/gradient of individual data points. 
+
+```{julia}
+# define a type that holds LMM model (data + parameters)
+struct LmmModel{T <: AbstractFloat} <: MOI.AbstractNLPEvaluator
+    # data
+    data :: Vector{LmmObs{T}}
+    # parameters
+    β    :: Vector{T}
+    L    :: Matrix{T}
+    σ²   :: Vector{T}    
+    # arrays for holding gradient
+    ∇β   :: Vector{T}
+    ∇σ²  :: Vector{T}
+    ∇L   :: Matrix{T}
+    # TODO: add whatever intermediate arrays you may want to pre-allocate
+    xty  :: Vector{T}
+    ztr2 :: Vector{T}
+    xtx  :: Matrix{T}
+    ztz2 :: Matrix{T}
+end
+
+"""
+    LmmModel(data::Vector{LmmObs})
+
+Create an LMM model that contains data and parameters.
+"""
+function LmmModel(obsvec::Vector{LmmObs{T}}) where T <: AbstractFloat
+    # dims
+    p    = size(obsvec[1].X, 2)
+    q    = size(obsvec[1].Z, 2)
+    # parameters
+    β    = Vector{T}(undef, p)
+    L    = Matrix{T}(undef, q, q)
+    σ²   = Vector{T}(undef, 1)    
+    # gradients
+    ∇β   = similar(β)    
+    ∇σ²  = similar(σ²)
+    ∇L   = similar(L)
+    # intermediate arrays
+    xty  = Vector{T}(undef, p)
+    ztr2 = Vector{T}(undef, abs2(q))
+    xtx  = Matrix{T}(undef, p, p)
+    ztz2 = Matrix{T}(undef, abs2(q), abs2(q))
+    LmmModel(obsvec, β, L, σ², ∇β, ∇σ², ∇L, xty, ztr2, xtx, ztz2)
+end
+
+"""
+    logl!(m::LmmModel, needgrad=false)
+
+Evaluate the log-likelihood of an LMM model at parameter values `m.β`, `m.L`, 
+and `m.σ²`. If `needgrad==true`, then `m.∇β`, `m.∇Σ`, and `m.σ² are filled 
+with the corresponding gradient.
+"""
+function logl!(m::LmmModel{T}, needgrad::Bool = false) where T <: AbstractFloat
+    logl = zero(T)
+    if needgrad
+        fill!(m.∇β , 0)
+        fill!(m.∇L , 0)
+        fill!(m.∇σ², 0)        
+    end
+    @inbounds for i in 1:length(m.data)
+        obs = m.data[i]
+        logl += logl!(obs, m.β, m.L, m.σ²[1], needgrad)
+        if needgrad
+            BLAS.axpy!(T(1), obs.∇β, m.∇β)
+            BLAS.axpy!(T(1), obs.∇Σ, m.∇L)
+            m.∇σ²[1] += obs.∇σ²[1]
+        end
+    end
+    logl
+end
+```
+
+## Q4. (20 pts) Test data
+
+Let's generate a synthetic longitudinal data set to test our algorithm.
+
+```{julia}
+Random.seed!(257)
+
+# dimension
+m      = 1000 # number of individuals
+ns     = rand(1500:2000, m) # numbers of observations per individual
+p      = 5 # number of fixed effects, including intercept
+q      = 3 # number of random effects, including intercept
+obsvec = Vector{LmmObs{Float64}}(undef, m)
+# true parameter values
+βtrue  = [0.1; 6.5; -3.5; 1.0; 5; zeros(p - 5)]
+σ²true = 1.5
+σtrue  = sqrt(σ²true)
+Σtrue  = Matrix(Diagonal([2.0; 1.2; 1.0; zeros(q - 3)]))
+Ltrue  = Matrix(cholesky(Symmetric(Σtrue), Val(true), check=false).L)
+# generate data
+for i in 1:m
+    # first column intercept, remaining entries iid std normal
+    X = Matrix{Float64}(undef, ns[i], p)
+    X[:, 1] .= 1
+    @views Distributions.rand!(Normal(), X[:, 2:p])
+    # first column intercept, remaining entries iid std normal
+    Z = Matrix{Float64}(undef, ns[i], q)
+    Z[:, 1] .= 1
+    @views Distributions.rand!(Normal(), Z[:, 2:q])
+    # generate y
+    y = X * βtrue .+ Z * (Ltrue * randn(q)) .+ σtrue * randn(ns[i])
+    # form a LmmObs instance
+    obsvec[i] = LmmObs(y, X, Z)
+end
+# form a LmmModel instance
+lmm = LmmModel(obsvec);
+```
+
+For later comparison with other software, we save the data into a text file `lmm_data.csv`. **Do not put this file in Git.** It takes 245.4MB storage.
+
+```{julia}
+(isfile("lmm_data.csv") && filesize("lmm_data.csv") == 245369685) || 
+open("lmm_data.csv", "w") do io
+    p = size(lmm.data[1].X, 2)
+    q = size(lmm.data[1].Z, 2)
+    # print header
+    print(io, "ID,Y,")
+    for j in 1:(p-1)
+        print(io, "X" * string(j) * ",")
+    end
+    for j in 1:(q-1)
+        print(io, "Z" * string(j) * (j < q-1 ? "," : "\n"))
+    end
+    # print data
+    for i in eachindex(lmm.data)
+        obs = lmm.data[i]
+        for j in 1:length(obs.y)
+            # id
+            print(io, i, ",")
+            # Y
+            print(io, obs.y[j], ",")
+            # X data
+            for k in 2:p
+                print(io, obs.X[j, k], ",")
+            end
+            # Z data
+            for k in 2:q-1
+                print(io, obs.Z[j, k], ",")
+            end
+            print(io, obs.Z[j, q], "\n")
+        end
+    end
+end
+```
+
+### Correctness
+
+Evaluate log-likelihood and gradient of whole data set at the true parameter values.
+
+```{julia}
+copy!(lmm.β, βtrue)
+copy!(lmm.L, Ltrue)
+lmm.σ²[1] = σ²true
+@show obj = logl!(lmm, true)
+@show lmm.∇β
+@show lmm.∇σ²
+@show lmm.∇L;
+```
+
+Test correctness. You will loss all 20 points if following code throws `AssertError`.
+
+```{julia}
+@assert abs(obj - (-2.840068438369969e6)) < 1e-4
+@assert norm(lmm.∇β - [41.0659167074073, 445.75120353972426, 
+        157.0133992249258, -335.09977360733626, -895.6257448385899]) < 1e-4
+@assert norm(lmm.∇L - [-3.3982575935824837 31.32103842086001 26.73645089732865; 
+        40.43528672997116 61.86377650461202 -75.37427770754684; 
+        37.811051468724486 -82.56838431216435 -56.45992542754974]) < 1e-4
+@assert abs(lmm.∇σ²[1] - (-489.5361730382465)) < 1e-4
+```
+
+### Efficiency
+
+Test efficiency.
+
+```{julia}
+bm_model = @benchmark logl!($lmm, true)
+```
+
+My median run time is 1.4ms. You will get full credit if your median run time is within 10ms. The points you will get are
+
+```{julia}
+clamp(10 / (median(bm_model).time / 1e6) * 10, 0, 10)
+```
+
+### Memory
+
+You will lose 1 point for each 100 bytes memory allocation. So the points you will get is
+
+```{julia}
+clamp(10 - median(bm_model).memory / 100, 0, 10)
+```
+
+## Q5. (30 pts) Starting point
+
+For numerical optimization, a good starting point is critical. Let's start $\boldsymbol{\beta}$ and $\sigma^2$ from the least sqaures solutions (ignoring intra-individual correlations)
+\begin{eqnarray*}
+\boldsymbol{\beta}^{(0)} &=& \left(\sum_i \mathbf{X}_i^T \mathbf{X}_i\right)^{-1} \left(\sum_i \mathbf{X}_i^T \mathbf{y}_i\right) \\
+\sigma^{2(0)} &=& \frac{\sum_i \|\mathbf{r}_i^{(0)}\|_2^2}{\sum_i n_i} = \frac{\sum_i \|\mathbf{y}_i - \mathbf{X}_i \boldsymbol{\beta}^{(0)}\|_2^2}{\sum_i n_i}.
+\end{eqnarray*}
+To get a reasonable starting point for $\boldsymbol{\Sigma} = \mathbf{L} \mathbf{L}^T$, we can minimize the least squares criterion (ignoring the noise variance component)
+$$
+    \text{minimize} \sum_i \| \mathbf{r}_i^{(0)} \mathbf{r}_i^{(0)T} - \mathbf{Z}_i \boldsymbol{\Sigma} \mathbf{Z}_i^T \|_{\text{F}}^2.
+$$
+Derive the minimizer $\boldsymbol{\Sigma}^{(0)}$ (10 pts). 
+
+We implement this start point strategy in the function `init_ls()`.
+
+```{julia}
+"""
+    init_ls!(m::LmmModel)
+
+Initialize parameters of a `LmmModel` object from the least squares estimate. 
+`m.β`, `m.L`, and `m.σ²` are overwritten with the least squares estimates.
+"""
+function init_ls!(m::LmmModel{T}) where T <: AbstractFloat
+    p, q = size(m.data[1].X, 2), size(m.data[1].Z, 2)
+    # TODO: fill m.β, m.L, m.σ² by LS estimates
+    sleep(1e-3) # pretend this takes 1ms
+    m
+end
+```
+
+```{julia}
+init_ls!(lmm)
+@show logl!(lmm)
+@show lmm.β
+@show lmm.σ²
+@show lmm.L;
+```
+
+### Correctness
+
+Your start points should have a log-likelihood larger than -3.3627e6 (10 pts). The points you get are
+
+```{julia}
+# this is the points you get
+(logl!(lmm) >  -3.3627e6) * 10
+```
+
+### Efficiency
+
+The start point should be computed quickly. Otherwise there is no point using it as a starting point. My median run time is 175μs. You get full credit (10 pts) if the median run time is within 1ms.
+
+```{julia}
+bm_init = @benchmark init_ls!($lmm)
+```
+
+```{julia}
+# this is the points you get
+clamp(1 / (median(bm_init).time / 1e6) * 10, 0, 10)
+```
+
+## Q6. NLP via MathOptInterface.jl
+
+We define the NLP problem using the modelling tool [MathOptInterface.jl](https://github.com/jump-dev/MathOptInterface.jl). Start-up code is given below. Modify if necessary to accomodate your own code.
+
+```{julia}
+"""
+    fit!(m::LmmModel, solver=Ipopt.Optimizer())
+
+Fit an `LmmModel` object by MLE using a nonlinear programming solver. Start point 
+should be provided in `m.β`, `m.σ²`, `m.L`.
+"""
+function fit!(
+        m :: LmmModel{T},
+        solver = Ipopt.Optimizer()
+    ) where T <: AbstractFloat
+    p    = size(m.data[1].X, 2)
+    q    = size(m.data[1].Z, 2)
+    npar = p + ((q * (q + 1)) >> 1) + 1
+    # prep the MOI
+    MOI.empty!(solver)
+    # set lower bounds and upper bounds of parameters
+    # q diagonal entries of Cholesky factor L should be >= 0
+    # σ² should be >= 0
+    lb   = fill(0.0, q + 1)
+    ub   = fill(Inf, q + 1)
+    NLPBlock = MOI.NLPBlockData(MOI.NLPBoundsPair.(lb, ub), m, true)
+    MOI.set(solver, MOI.NLPBlock(), NLPBlock)
+    # start point
+    params = MOI.add_variables(solver, npar)    
+    par0   = Vector{T}(undef, npar)
+    modelpar_to_optimpar!(par0, m)    
+    for i in 1:npar
+        MOI.set(solver, MOI.VariablePrimalStart(), params[i], par0[i])
+    end
+    MOI.set(solver, MOI.ObjectiveSense(), MOI.MAX_SENSE)
+    # optimize
+    MOI.optimize!(solver)
+    optstat = MOI.get(solver, MOI.TerminationStatus())
+    optstat in (MOI.LOCALLY_SOLVED, MOI.ALMOST_LOCALLY_SOLVED) || 
+        @warn("Optimization unsuccesful; got $optstat")
+    # update parameters and refresh gradient
+    xsol = [MOI.get(solver, MOI.VariablePrimal(), MOI.VariableIndex(i)) for i in 1:npar]
+    optimpar_to_modelpar!(m, xsol)
+    logl!(m, true)
+    m
+end
+
+"""
+    modelpar_to_optimpar!(par, m)
+
+Translate model parameters in `m` to optimization variables in `par`.
+"""
+function modelpar_to_optimpar!(
+        par :: Vector,
+        m   :: LmmModel
+    )
+    p = size(m.data[1].X, 2)
+    q = size(m.data[1].Z, 2)
+    # β
+    copyto!(par, m.β)
+    # L
+    offset = p + 1
+    @inbounds for j in 1:q, i in j:q
+        par[offset] = m.L[i, j]
+        offset += 1
+    end
+    # σ²
+    par[end] = m.σ²[1]
+    par
+end
+
+"""
+    optimpar_to_modelpar!(m, par)
+
+Translate optimization variables in `par` to the model parameters in `m`.
+"""
+function optimpar_to_modelpar!(
+        m   :: LmmModel, 
+        par :: Vector
+    )
+    p = size(m.data[1].X, 2)
+    q = size(m.data[1].Z, 2)
+    # β
+    copyto!(m.β, 1, par, 1, p)
+    # L
+    fill!(m.L, 0)
+    offset = p + 1
+    @inbounds for j in 1:q, i in j:q
+        m.L[i, j] = par[offset]
+        offset   += 1
+    end
+    # σ²
+    m.σ²[1] = par[end]    
+    m
+end
+
+function MOI.initialize(
+        m                  :: LmmModel, 
+        requested_features :: Vector{Symbol}
+    )
+    for feat in requested_features
+        if !(feat in MOI.features_available(m))
+            error("Unsupported feature $feat")
+        end
+    end
+end
+
+MOI.features_available(m::LmmModel) = [:Grad, :Hess, :Jac]
+
+function MOI.eval_objective(
+        m   :: LmmModel, 
+        par :: Vector
+    )
+    optimpar_to_modelpar!(m, par)
+    logl!(m, false) # don't need gradient here
+end
+
+function MOI.eval_objective_gradient(
+        m    :: LmmModel, 
+        grad :: Vector, 
+        par  :: Vector
+    )
+    p = size(m.data[1].X, 2)
+    q = size(m.data[1].Z, 2)
+    optimpar_to_modelpar!(m, par) 
+    obj = logl!(m, true)
+    # gradient wrt β
+    copyto!(grad, m.∇β)
+    # gradient wrt L
+    offset = p + 1
+    @inbounds for j in 1:q, i in j:q
+        grad[offset] = m.∇L[i, j]
+        offset += 1
+    end
+    # gradient with respect to σ²
+    grad[end] = m.∇σ²[1]
+    # return objective
+    obj
+end
+
+function MOI.eval_constraint(m::LmmModel, g, par)
+    p = size(m.data[1].X, 2)
+    q = size(m.data[1].Z, 2)
+    gidx   = 1
+    offset = p + 1
+    @inbounds for j in 1:q, i in j:q
+        if i == j
+            g[gidx] = par[offset]
+            gidx   += 1
+        end
+        offset += 1
+    end
+    g[end] = par[end]
+    g
+end
+
+function MOI.jacobian_structure(m::LmmModel)
+    p    = size(m.data[1].X, 2)
+    q    = size(m.data[1].Z, 2)
+    row  = collect(1:(q + 1))
+    col  = Int[]
+    offset = p + 1
+    for j in 1:q, i in j:q
+        (i == j) && push!(col, offset)
+        offset += 1
+    end
+    push!(col, offset)
+    [(row[i], col[i]) for i in 1:length(row)]
+end
+
+MOI.eval_constraint_jacobian(m::LmmModel, J, par) = fill!(J, 1)
+
+function MOI.hessian_lagrangian_structure(m::LmmModel)
+    p    = size(m.data[1].X, 2)
+    q    = size(m.data[1].Z, 2)    
+    q◺   = ◺(q)
+    # we work on the upper triangular part of the Hessian
+    arr1 = Vector{Int}(undef, ◺(p) + ◺(q◺) + q◺ + 1)
+    arr2 = Vector{Int}(undef, ◺(p) + ◺(q◺) + q◺ + 1)
+    # Hββ block
+    idx  = 1    
+    for j in 1:p, i in 1:j
+        arr1[idx] = i
+        arr2[idx] = j
+        idx      += 1
+    end
+    # HLL block
+    for j in 1:q◺, i in 1:j
+        arr1[idx] = p + i
+        arr2[idx] = p + j
+        idx      += 1
+    end
+    # HLσ² block
+    for i in (p + 1):(p + q◺)
+        arr1[idx] = i
+        arr2[idx] = p + q◺ + 1
+        idx      += 1
+    end
+    # Hσ²σ² block
+    arr1[idx] = p + q◺ + 1
+    arr2[idx] = p + q◺ + 1
+    [(arr1[i], arr2[i]) for i in 1:length(arr1)]
+end
+
+function MOI.eval_hessian_lagrangian(
+        m   :: LmmModel, 
+        H   :: AbstractVector{T},
+        par :: AbstractVector{T}, 
+        σ   :: T, 
+        μ   :: AbstractVector{T}
+    ) where {T}    
+    p  = size(m.data[1].X, 2)
+    q  = size(m.data[1].Z, 2)    
+    q◺ = ◺(q)
+    optimpar_to_modelpar!(m, par)
+    logl!(m, true, true)
+    # Hββ block
+    idx = 1    
+    @inbounds for j in 1:p, i in 1:j
+        H[idx] = m.Hββ[i, j]
+        idx   += 1
+    end
+    # HLL block
+    @inbounds for j in 1:q◺, i in 1:j
+        H[idx] = m.HLL[i, j]
+        idx   += 1
+    end
+    # HLσ² block
+    @inbounds for j in 1:q, i in j:q
+        H[idx] = m.Hσ²L[i, j]
+        idx   += 1
+    end
+    # Hσ²σ² block
+    H[idx] = m.Hσ²σ²[1, 1]
+    lmul!(σ, H)
+end
+```
+
+## Q7. (20 pts) Test drive
+
+Now we can run any NLP solver (supported by MathOptInterface.jl) to compute the MLE. For grading purpose, let's use the `:LD_MMA` ([Method of Moving Asymptotes](https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#mma-method-of-moving-asymptotes-and-ccsa)) algorithm in NLopt.jl.
+
+```{julia}
+# initialize from least squares
+init_ls!(lmm)
+println("objective value at starting point: ", logl!(lmm)); println()
+
+# NLopt (LD_MMA) obj. val = -2.8400587866501966e6
+NLopt_solver = NLopt.Optimizer()
+MOI.set(NLopt_solver, MOI.RawOptimizerAttribute("algorithm"), :LD_MMA)
+@time fit!(lmm, NLopt_solver)
+
+println("objective value at solution: $(logl!(lmm)))")
+println("solution values:")
+@show lmm.β
+@show lmm.σ²
+@show lmm.L * transpose(lmm.L)
+println("gradient @ solution:")
+@show lmm.∇β
+@show lmm.∇σ²
+@show lmm.∇L
+@show norm([lmm.∇β; vec(LowerTriangular(lmm.∇L)); lmm.∇σ²])
+```
+
+### Correctness
+
+You get 10 points if the following code does not throw `AssertError`.
+
+```{julia}
+# objective at solution should be close enough to the optimal
+@assert logl!(lmm) > -2.840059e6
+# gradient at solution should be small enough
+@assert norm([lmm.∇β; vec(LowerTriangular(lmm.∇L)); lmm.∇σ²]) < 0.1
+```
+
+### Efficiency
+
+My median run time is 50ms. You get 10 points if your median time is within 1s(=1000ms).
+
+```{julia}
+NLopt_solver = NLopt.Optimizer()
+MOI.set(NLopt_solver, MOI.RawOptimizerAttribute("algorithm"), :LD_MMA)
+bm_mma = @benchmark fit!($lmm, $(NLopt_solver)) setup=(init_ls!(lmm))
+```
+
+```{julia}
+# this is the points you get
+clamp(1 / (median(bm_mma).time / 1e9) * 10, 0, 10)
+```
+
+## Q8. (10 pts) Gradient free vs gradient-based methods
+
+Advantage of using a modelling tool such as MathOptInterface.jl is that we can easily switch the backend solvers. For a research problem, we never know beforehand which solver works best. 
+
+Try different solvers in the NLopt.jl and Ipopt.jl packages. Compare the results in terms of run times (the shorter the better), objective values at solution (the larger the better), and gradients at solution (closer to 0 the better). Summarize what you find.
+
+See this [page](https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/) for the descriptions of algorithms in NLopt.
+
+Documentation for the Ipopt can be found [here](https://coin-or.github.io/Ipopt/).  
+
+```{julia}
+# vector of solvers to compare
+solvers = ["NLopt (LN_COBYLA, gradient free)", "NLopt (LD_MMA, gradient-based)", 
+    "Ipopt (L-BFGS)"]
+
+function setup_solver(s::String)
+    if s == "NLopt (LN_COBYLA, gradient free)"
+        solver = NLopt.Optimizer()
+        MOI.set(solver, MOI.RawOptimizerAttribute("algorithm"), :LN_COBYLA)
+    elseif s == "NLopt (LD_MMA, gradient-based)"
+        solver = NLopt.Optimizer()
+        MOI.set(solver, MOI.RawOptimizerAttribute("algorithm"), :LD_MMA)
+    elseif s == "Ipopt (L-BFGS)"
+        solver = Ipopt.Optimizer()
+        MOI.set(solver, MOI.RawOptimizerAttribute("print_level"), 0)
+        MOI.set(solver, MOI.RawOptimizerAttribute("hessian_approximation"), "limited-memory")
+        MOI.set(solver, MOI.RawOptimizerAttribute("tol"), 1e-6)
+    elseif s == "Ipopt (use FIM)"
+        # Ipopt (use Hessian) obj val = -2.8400587866468e6
+        solver = Ipopt.Optimizer()
+        MOI.set(solver, MOI.RawOptimizerAttribute("print_level"), 0)        
+    else
+        error("unrecognized solver $s")
+    end
+    solver
+end
+
+# containers for results
+runtime = zeros(length(solvers))
+objvals = zeros(length(solvers))
+gradnrm = zeros(length(solvers))
+
+for i in 1:length(solvers)
+    solver = setup_solver(solvers[i])
+    bm = @benchmark fit!($lmm, $solver) setup = (init_ls!(lmm))
+    runtime[i] = median(bm).time / 1e9
+    objvals[i] = logl!(lmm, true)
+    gradnrm[i] = norm([lmm.∇β; vec(LowerTriangular(lmm.∇L)); lmm.∇σ²])
+end
+```
+
+```{julia}
+# display results
+pretty_table(
+    hcat(solvers, runtime, objvals, gradnrm),
+    header = ["Solver", "Runtime", "Log-Like", "Gradiant Norm"],
+    formatters = (ft_printf("%5.2f", 2), ft_printf("%8.8f", 3:4))
+    )
+```
+
+## Q9. (10 pts) Compare with existing art
+
+Let's compare our method with lme4 package in R and MixedModels.jl package in Julia. Both lme4 and MixedModels.jl are developed mainly by Doug Bates. Summarize what you find.
+
+```{julia}
+method  = ["My method", "lme4", "MixedModels.jl"]
+runtime = zeros(3)  # record the run times
+loglike = zeros(3); # record the log-likelihood at MLE
+```
+
+### Your approach
+
+```{julia}
+solver = setup_solver("NLopt (LD_MMA, gradient-based)")
+bm_257 = @benchmark fit!($lmm, $solver) setup=(init_ls!(lmm))
+runtime[1] = (median(bm_257).time) / 1e9
+loglike[1] = logl!(lmm)
+```
+
+### lme4 
+
+```{julia}
+R"""
+library(lme4)
+library(readr)
+library(magrittr)
+
+testdata <- read_csv("lmm_data.txt")
+"""
+```
+
+```{julia}
+R"""
+rtime <- system.time(mmod <- 
+  lmer(Y ~ X1 + X2 + X3 + X4 + (1 + Z1 + Z2 | ID), testdata, REML = FALSE))
+"""
+```
+
+```{julia}
+R"""
+rtime <- rtime["elapsed"]
+summary(mmod)
+rlogl <- logLik(mmod)
+"""
+runtime[2] = @rget rtime
+loglike[2] = @rget rlogl;
+```
+
+### MixedModels.jl
+
+
+```{julia}
+testdata = CSV.File("lmm_data.txt", types = Dict(1=>String)) |> DataFrame!
+```
+
+```{julia}
+mj = fit(MixedModel, @formula(Y ~ X1 + X2 + X3 + X4 + (1 + Z1 + Z2 | ID)), testdata)
+bm_mm = @benchmark fit(MixedModel, @formula(Y ~ X1 + X2 + X3 + X4 + (1 + Z1 + Z2 | ID)), $testdata)
+loglike[3] = loglikelihood(mj)
+runtime[3] = median(bm_mm).time / 1e9
+```
+
+```{julia}
+display(bm_mm)
+mj
+```
+
+### Summary
+
+```{julia}
+pretty_table(
+    hcat(method, runtime, loglike),
+    header = ["Method", "Runtime", "Log-Like"],
+    formatters = (ft_printf("%5.2f", 2), ft_printf("%8.6f", 3))
+    )
+```
+
+## Q9. Be proud of yourself
+
+Go to your resume/cv and claim you have experience performing analysis on complex longitudinal data sets with millions of records. And you beat current software by XXX fold.
