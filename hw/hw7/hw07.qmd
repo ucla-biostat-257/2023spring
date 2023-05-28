@@ -1,0 +1,652 @@
+---
+title: Biostat/Biomath M257 Homework 7
+subtitle: 'Due June 16 @ 11:59PM'
+author: Student Name (UID)
+date: today
+format:
+  html:
+    theme: cosmo
+    embed-resources: true
+    number-sections: true
+    toc: true
+    toc-depth: 4
+    toc-location: left
+jupyter:
+  jupytext:
+    formats: 'ipynb,qmd'
+    text_representation:
+      extension: .qmd
+      format_name: quarto
+      format_version: '1.0'
+      jupytext_version: 1.14.5
+  kernelspec:
+    display_name: Julia 1.9.0
+    language: julia
+    name: julia-1.9
+---
+
+System information (for reproducibility):
+
+```{julia}
+versioninfo()
+```
+
+Load packages:
+
+```{julia}
+using Pkg
+
+Pkg.activate(pwd())
+Pkg.instantiate()
+Pkg.status()
+```
+
+Again we continue with the linear mixed effects model (LMM)
+$$
+    \mathbf{Y}_i = \mathbf{X}_i \boldsymbol{\beta} + \mathbf{Z}_i \boldsymbol{\gamma}_i + \boldsymbol{\epsilon}_i, \quad i=1,\ldots,n,
+$$
+where   
+- $\mathbf{Y}_i \in \mathbb{R}^{n_i}$ is the response vector of $i$-th individual,  
+- $\mathbf{X}_i \in \mathbb{R}^{n_i \times p}$ is the fixed effects predictor matrix of $i$-th individual,  
+- $\mathbf{Z}_i \in \mathbb{R}^{n_i \times q}$ is the random effects predictor matrix of $i$-th individual,  
+- $\boldsymbol{\epsilon}_i \in \mathbb{R}^{n_i}$ are multivariate normal $N(\mathbf{0}_{n_i},\sigma^2 \mathbf{I}_{n_i})$,  
+- $\boldsymbol{\beta} \in \mathbb{R}^p$ are fixed effects, and  
+- $\boldsymbol{\gamma}_i \in \mathbb{R}^q$ are random effects assumed to be $N(\mathbf{0}_q, \boldsymbol{\Sigma}_{q \times q}$) independent of $\boldsymbol{\epsilon}_i$.
+
+The log-likelihood of the $i$-th datum $(\mathbf{y}_i, \mathbf{X}_i, \mathbf{Z}_i)$ is 
+$$
+    \ell_i(\boldsymbol{\beta}, \mathbf{L}, \sigma_0^2) = - \frac{n_i}{2} \log (2\pi) - \frac{1}{2} \log \det \boldsymbol{\Omega}_i - \frac{1}{2} (\mathbf{y} - \mathbf{X}_i \boldsymbol{\beta})^T \boldsymbol{\Omega}_i^{-1} (\mathbf{y} - \mathbf{X}_i \boldsymbol{\beta}),
+$$
+where
+$$
+    \boldsymbol{\Omega}_i = \sigma^2 \mathbf{I}_{n_i} + \mathbf{Z}_i \boldsymbol{\Sigma} \mathbf{Z}_i^T.
+$$
+Given $m$ independent data points $(\mathbf{y}_i, \mathbf{X}_i, \mathbf{Z}_i)$, $i=1,\ldots,m$, we seek the maximum likelihood estimate (MLE) by maximizing the log-likelihood
+$$
+\ell(\boldsymbol{\beta}, \boldsymbol{\Sigma}, \sigma_0^2) = \sum_{i=1}^m \ell_i(\boldsymbol{\beta}, \boldsymbol{\Sigma}, \sigma_0^2).
+$$
+
+In HW6, we used the nonlinear programming (NLP) approach (Newton type algorithms) for optimization. In this assignment, we derive and implement an expectation-maximization (EM) algorithm for the same problem.
+
+```{julia}
+# load necessary packages; make sure install them first
+using BenchmarkTools, Distributions, LinearAlgebra, Random
+```
+
+## Q1. (10 pts) Refresher on normal-normal model
+
+Assume the conditional distribution
+$$
+\mathbf{y} \mid \boldsymbol{\gamma} \sim N(\mathbf{X} \boldsymbol{\beta} + \mathbf{Z} \boldsymbol{\gamma}, \sigma^2 \mathbf{I}_n)
+$$
+and the prior distribution
+$$
+\boldsymbol{\gamma} \sim N(\mathbf{0}_q, \boldsymbol{\Sigma}).
+$$
+By the Bayes theorem, the posterior distribution is
+\begin{eqnarray*}
+f(\boldsymbol{\gamma} \mid \mathbf{y}) &=& \frac{f(\mathbf{y} \mid \boldsymbol{\gamma}) \times f(\boldsymbol{\gamma})}{f(\mathbf{y})}, \end{eqnarray*}
+where $f$ denotes corresponding density. 
+
+Show that the posterior distribution of random effects $\boldsymbol{\gamma}$ is a multivariate normal with mean
+\begin{eqnarray*}
+\mathbb{E} (\boldsymbol{\gamma} \mid \mathbf{y}) &=& \sigma^{-2} (\sigma^{-2} \mathbf{Z}^T \mathbf{Z} + \boldsymbol{\Sigma}^{-1})^{-1 } \mathbf{Z}^T (\mathbf{y} - \mathbf{X} \boldsymbol{\beta}) \\
+&=& \boldsymbol{\Sigma} \mathbf{Z}^T (\mathbf{Z} \boldsymbol{\Sigma} \mathbf{Z}^T + \sigma^2 \mathbf{I})^{-1} (\mathbf{y} - \mathbf{X} \boldsymbol{\beta})
+\end{eqnarray*}
+and covariance
+\begin{eqnarray*}
+\text{Var} (\boldsymbol{\gamma} \mid \mathbf{y}) &=& (\sigma^{-2} \mathbf{Z}^T \mathbf{Z} + \boldsymbol{\Sigma}^{-1})^{-1} \\
+&=& \boldsymbol{\Sigma} - \boldsymbol{\Sigma} \mathbf{Z}^T (\mathbf{Z} \boldsymbol{\Sigma} \mathbf{Z}^T + \sigma^2 \mathbf{I})^{-1} \mathbf{Z} \boldsymbol{\Sigma}.
+\end{eqnarray*}
+
+## Q2. (20 pts) Derive EM algorithm
+
+1. Write down the complete log-likelihood
+$$
+\sum_{i=1}^m \log f(\mathbf{y}_i, \boldsymbol{\gamma}_i \mid \boldsymbol{\beta}, \boldsymbol{\Sigma}, \sigma^2)
+$$
+
+2. Derive the $Q$ function (E-step).
+$$
+Q(\boldsymbol{\beta}, \boldsymbol{\Sigma}, \sigma^2 \mid \boldsymbol{\beta}^{(t)}, \boldsymbol{\Sigma}^{(t)}, \sigma^{2(t)}).
+$$
+
+3. Derive the EM (or ECM) update of $\boldsymbol{\beta}$, $\boldsymbol{\Sigma}$, and $\sigma^2$ (M-step). 
+
+## Q3. (20 pts) Objective of a single datum
+
+We modify the code from HW6 to evaluate the objective, the conditional mean of $\boldsymbol{\gamma}$, and the conditional variance of $\boldsymbol{\gamma}$. Start-up code is provided below. You do _not_ have to use this code.
+
+```{julia}
+# define a type that holds an LMM datum
+struct LmmObs{T <: AbstractFloat}
+    # data
+    y          :: Vector{T}
+    X          :: Matrix{T}
+    Z          :: Matrix{T}
+    # posterior mean and variance of random effects γ
+    μγ         :: Vector{T} # posterior mean of random effects
+    νγ         :: Matrix{T} # posterior variance of random effects
+    # TODO: add whatever intermediate arrays you may want to pre-allocate
+    yty        :: T
+    rtr        :: Vector{T}
+    xty        :: Vector{T}
+    zty        :: Vector{T}
+    ztr        :: Vector{T}
+    ltztr      :: Vector{T}
+    xtr        :: Vector{T}
+    storage_p  :: Vector{T}
+    storage_q  :: Vector{T}
+    xtx        :: Matrix{T}
+    ztx        :: Matrix{T}
+    ztz        :: Matrix{T}
+    ltztzl     :: Matrix{T}
+    storage_qq :: Matrix{T}
+end
+
+"""
+    LmmObs(y::Vector, X::Matrix, Z::Matrix)
+
+Create an LMM datum of type `LmmObs`.
+"""
+function LmmObs(
+    y::Vector{T}, 
+    X::Matrix{T}, 
+    Z::Matrix{T}) where T <: AbstractFloat
+    n, p, q = size(X, 1), size(X, 2), size(Z, 2)
+    μγ         = Vector{T}(undef, q)
+    νγ         = Matrix{T}(undef, q, q)
+    yty        = abs2(norm(y))
+    rtr        = Vector{T}(undef, 1)
+    xty        = transpose(X) * y
+    zty        = transpose(Z) * y
+    ztr        = similar(zty)
+    ltztr      = similar(zty)
+    xtr        = Vector{T}(undef, p)
+    storage_p  = similar(xtr)
+    storage_q  = Vector{T}(undef, q)
+    xtx        = transpose(X) * X
+    ztx        = transpose(Z) * X
+    ztz        = transpose(Z) * Z
+    ltztzl     = similar(ztz)
+    storage_qq = similar(ztz)
+    LmmObs(y, X, Z, μγ, νγ, 
+        yty, rtr, xty, zty, ztr, ltztr, xtr,
+        storage_p, storage_q, 
+        xtx, ztx, ztz, ltztzl, storage_qq)
+end
+
+"""
+    logl!(obs::LmmObs, β, Σ, L, σ², updater = false)
+
+Evaluate the log-likelihood of a single LMM datum at parameter values `β`, `Σ`, 
+and `σ²`. The lower triangular Cholesky factor `L` of `Σ` must be supplied too.
+The fields `obs.μγ` and `obs.νγ` are overwritten by the posterior mean and 
+posterior variance of random effects. If `updater==true`, fields `obs.ztr`, 
+`obs.xtr`, and `obs.rtr` are updated according to input parameter values. 
+Otherwise, it assumes these three fields are pre-computed. 
+"""
+function logl!(
+        obs     :: LmmObs{T}, 
+        β       :: Vector{T}, 
+        Σ       :: Matrix{T},
+        L       :: Matrix{T},
+        σ²      :: T,
+        updater :: Bool = false
+        ) where T <: AbstractFloat
+    n, p, q = size(obs.X, 1), size(obs.X, 2), size(obs.Z, 2)
+    σ²inv   = inv(σ²)
+    ####################
+    # Evaluate objective
+    ####################
+    # form the q-by-q matrix: Lt Zt Z L
+    copy!(obs.ltztzl, obs.ztz)
+    BLAS.trmm!('L', 'L', 'T', 'N', T(1), L, obs.ltztzl) # O(q^3)
+    BLAS.trmm!('R', 'L', 'N', 'N', T(1), L, obs.ltztzl) # O(q^3)        
+    # form the q-by-q matrix: M = σ² I + Lt Zt Z L
+    copy!(obs.storage_qq, obs.ltztzl)
+    @inbounds for j in 1:q
+        obs.storage_qq[j, j] += σ²
+    end
+    LAPACK.potrf!('U', obs.storage_qq) # O(q^3)
+    # Zt * res
+    updater && BLAS.gemv!('N', T(-1), obs.ztx, β, T(1), copy!(obs.ztr, obs.zty)) # O(pq)
+    # Lt * (Zt * res)
+    BLAS.trmv!('L', 'T', 'N', L, copy!(obs.ltztr, obs.ztr))    # O(q^2)
+    # storage_q = (Mchol.U') \ (Lt * (Zt * res))
+    BLAS.trsv!('U', 'T', 'N', obs.storage_qq, copy!(obs.storage_q, obs.ltztr)) # O(q^3)
+    # Xt * res = Xt * y - Xt * X * β
+    updater && BLAS.gemv!('N', T(-1), obs.xtx, β, T(1), copy!(obs.xtr, obs.xty))
+    # l2 norm of residual vector
+    updater && (obs.rtr[1] = obs.yty - dot(obs.xty, β) - dot(obs.xtr, β))
+    # assemble pieces
+    logl::T = n * log(2π) + (n - q) * log(σ²) # constant term
+    @inbounds for j in 1:q # log det term
+        logl += 2log(obs.storage_qq[j, j])
+    end
+    qf    = abs2(norm(obs.storage_q)) # quadratic form term
+    logl += (obs.rtr[1] - qf) * σ²inv 
+    logl /= -2
+    ######################################
+    # TODO: Evaluate posterior mean and variance
+    ######################################    
+    # TODO
+    ###################
+    # Return
+    ###################        
+    return logl
+end
+```
+
+It is a good idea to test correctness and efficiency of the single datum objective/posterior mean/var evaluator here. It's the same test datum as in HW3 and HW6.
+
+```{julia}
+Random.seed!(257)
+
+# dimension
+n, p, q = 2000, 5, 3
+# predictors
+X = [ones(n) randn(n, p - 1)]
+Z = [ones(n) randn(n, q - 1)]
+# parameter values
+β  = [2.0; -1.0; rand(p - 2)]
+σ² = 1.5
+Σ  = fill(0.1, q, q) + 0.9I # compound symmetry 
+L  = Matrix(cholesky(Symmetric(Σ)).L)
+# generate y
+y  = X * β + Z * rand(MvNormal(Σ)) + sqrt(σ²) * randn(n)
+
+# form the LmmObs object
+obs = LmmObs(y, X, Z);
+```
+
+### Correctness
+
+```{julia}
+@show logl = logl!(obs, β, Σ, L, σ², true)
+@show obs.μγ
+@show obs.νγ;
+```
+
+You will lose all 20 points if following statement throws `AssertionError`.
+
+```{julia}
+@assert abs(logl - (-3256.1793358058258)) < 1e-4
+@assert norm(obs.μγ - [0.10608689301333621, 
+        -0.25104190602577225, -1.4653979409855415]) < 1e-4
+@assert norm(obs.νγ - [
+        0.0007494356395909563 -1.2183420093769967e-6 -2.176783643112221e-6; 
+        -1.2183420282298223e-6 0.0007542331467601107 2.1553464632686345e-5; 
+        -2.1767836636008638e-6 2.1553464641863096e-5 0.0007465271342535443
+        ]) < 1e-4
+```
+
+### Efficiency
+
+Benchmark for efficiency.
+
+```{julia}
+bm_obj = @benchmark logl!($obs, $β, $Σ, $L, $σ², true)
+```
+
+My median runt time is 800ns. You will get full credit if the median run time is within 10μs. The points you will get are
+
+```{julia}
+clamp(10 / (median(bm_obj).time / 1e3) * 10, 0, 10)
+```
+
+```{julia}
+# # check for type stability
+# @code_warntype logl!(obs, β, Σ, L, σ²)
+```
+
+```{julia}
+# using Profile
+
+# Profile.clear()
+# @profile for i in 1:10000; logl!(obs, β, Σ, L, σ²); end
+# Profile.print(format=:flat)
+```
+
+## Q4. LmmModel type
+
+We modify the `LmmModel` type in HW6 to hold all data points, model parameters, and intermediate arrays.
+
+```{julia}
+# define a type that holds LMM model (data + parameters)
+struct LmmModel{T <: AbstractFloat}
+    # data
+    data :: Vector{LmmObs{T}}
+    # parameters
+    β      :: Vector{T}
+    Σ      :: Matrix{T}
+    L      :: Matrix{T}
+    σ²     :: Vector{T}    
+    # TODO: add whatever intermediate arrays you may want to pre-allocate
+    xty    :: Vector{T}
+    xtr    :: Vector{T}
+    ztr2   :: Vector{T}
+    xtxinv :: Matrix{T}
+    ztz2   :: Matrix{T}
+end
+
+"""
+    LmmModel(data::Vector{LmmObs})
+
+Create an LMM model that contains data and parameters.
+"""
+function LmmModel(obsvec::Vector{LmmObs{T}}) where T <: AbstractFloat
+    # dims
+    p      = size(obsvec[1].X, 2)
+    q      = size(obsvec[1].Z, 2)
+    # parameters
+    β      = Vector{T}(undef, p)
+    Σ      = Matrix{T}(undef, q, q)
+    L      = Matrix{T}(undef, q, q)
+    σ²     = Vector{T}(undef, 1)    
+    # intermediate arrays
+    xty    = zeros(T, p)
+    xtr    = similar(xty)
+    ztr2   = Vector{T}(undef, abs2(q))
+    xtxinv = zeros(T, p, p)
+    # pre-calculate \sum_i Xi^T Xi and \sum_i Xi^T y_i
+    @inbounds for i in eachindex(obsvec)
+        obs = obsvec[i]
+        BLAS.axpy!(T(1), obs.xtx, xtxinv)
+        BLAS.axpy!(T(1), obs.xty, xty)
+    end
+    # invert X'X
+    LAPACK.potrf!('U', xtxinv)
+    LAPACK.potri!('U', xtxinv)
+    LinearAlgebra.copytri!(xtxinv, 'U')
+    ztz2   = Matrix{T}(undef, abs2(q), abs2(q))
+    LmmModel(obsvec, β, Σ, L, σ², xty, xtr, ztr2, xtxinv, ztz2)
+end
+```
+
+## Q5. Implement EM update
+
+Let's write the key function `update_em!` that performs one iteration of EM update.
+
+```{julia}
+"""
+    update_em!(m::LmmModel, updater::Bool = false)
+
+Perform one iteration of EM update. It returns the log-likelihood calculated 
+from input `m.β`, `m.Σ`, `m.L`, and `m.σ²`. These fields are then overwritten 
+by the next EM iterate. The fields `m.data[i].xtr`, `m.data[i].ztr`, and 
+`m.data[i].rtr` are updated according to the resultant `m.β`. If `updater==true`, 
+the function first updates `m.data[i].xtr`, `m.data[i].ztr`, and 
+`m.data[i].rtr` according to `m.β`. If `updater==false`, it assumes these fields 
+are pre-computed.
+"""
+function update_em!(m::LmmModel{T}, updater::Bool = false) where T <: AbstractFloat
+    logl = zero(T)
+    # TODO: update m.β
+    # TODO: update m.data[i].ztr, m.data[i].xtr, m.data[i].rtr
+    # TODO: update m.σ²
+    # update m.Σ and m.L
+    # return log-likelihood at input parameter values
+    logl
+end
+```
+
+## Q6. (30 pts) Test data
+
+Let's generate a synthetic longitudinal data set (same as HW6) to test our algorithm.
+
+```{julia}
+Random.seed!(257)
+
+# dimension
+m      = 1000 # number of individuals
+ns     = rand(1500:2000, m) # numbers of observations per individual
+p      = 5 # number of fixed effects, including intercept
+q      = 3 # number of random effects, including intercept
+obsvec = Vector{LmmObs{Float64}}(undef, m)
+# true parameter values
+βtrue  = [0.1; 6.5; -3.5; 1.0; 5]
+σ²true = 1.5
+σtrue  = sqrt(σ²true)
+Σtrue  = Matrix(Diagonal([2.0; 1.2; 1.0]))
+Ltrue  = Matrix(cholesky(Symmetric(Σtrue)).L)
+# generate data
+for i in 1:m
+    # first column intercept, remaining entries iid std normal
+    X = Matrix{Float64}(undef, ns[i], p)
+    X[:, 1] .= 1
+    @views Distributions.rand!(Normal(), X[:, 2:p])
+    # first column intercept, remaining entries iid std normal
+    Z = Matrix{Float64}(undef, ns[i], q)
+    Z[:, 1] .= 1
+    @views Distributions.rand!(Normal(), Z[:, 2:q])
+    # generate y
+    y = X * βtrue .+ Z * (Ltrue * randn(q)) .+ σtrue * randn(ns[i])
+    # form a LmmObs instance
+    obsvec[i] = LmmObs(y, X, Z)
+end
+# form a LmmModel instance
+lmm = LmmModel(obsvec);
+```
+
+### Correctness
+
+Evaluate log-likelihood and gradient at the true parameter values.
+
+```{julia}
+copy!(lmm.β, βtrue)
+copy!(lmm.Σ, Σtrue)
+copy!(lmm.L, Ltrue)
+lmm.σ²[1] = σ²true
+@show obj1 = update_em!(lmm, true)
+@show lmm.β
+@show lmm.Σ
+@show lmm.L
+@show lmm.σ²
+println()
+@show obj2 = update_em!(lmm, false)
+@show lmm.β
+@show lmm.Σ
+@show lmm.L
+@show lmm.σ²
+```
+
+Test correctness. You will loss all 30 points if following code throws `AssertError`.
+
+```{julia}
+@assert abs(obj1 - (-2.840068438369969e6)) < 1e-4
+@assert abs(obj2 - (-2.84006046054206e6)) < 1e-4
+```
+
+### Efficiency
+
+Test efficiency of EM update.
+
+```{julia}
+bm_emupdate = @benchmark update_em!($lmm, true) setup=(
+    copy!(lmm.β, βtrue);
+    copy!(lmm.Σ, Σtrue);
+    copy!(lmm.L, Ltrue);
+    lmm.σ²[1] = σ²true)
+```
+
+My median run time is 1ms. You will get full credit if your median run time is within 10ms. The points you will get are
+
+```{julia}
+clamp(10 / (median(bm_emupdate).time / 1e6) * 10, 0, 10)
+```
+
+### Memory
+
+You will lose 1 point for each 100 bytes memory allocation. So the points you will get is
+
+```{julia}
+clamp(10 - median(bm_emupdate).memory / 100, 0, 10)
+```
+
+## Q7. Starting point
+
+We use the same least squares estimates as in HW6 as starting point. 
+
+```{julia}
+"""
+    init_ls!(m::LmmModel)
+
+Initialize parameters of a `LmmModel` object from the least squares estimate. 
+`m.β`, `m.L`, and `m.σ²` are overwritten with the least squares estimates.
+"""
+function init_ls!(m::LmmModel{T}) where T <: AbstractFloat
+    p, q = size(m.data[1].X, 2), size(m.data[1].Z, 2)
+    # LS estimate for β
+    mul!(m.β, m.xtxinv, m.xty)
+    # LS etimate for σ2 and Σ
+    rss, ntotal = zero(T), 0
+    fill!(m.ztz2, 0)
+    fill!(m.ztr2, 0)    
+    @inbounds for i in eachindex(m.data)
+        obs = m.data[i]
+        ntotal += length(obs.y)
+        # update Xt * res
+        BLAS.gemv!('N', T(-1), obs.xtx, m.β, T(1), copy!(obs.xtr, obs.xty))
+        # rss of i-th individual
+        rss += obs.yty - dot(obs.xty, m.β) - dot(obs.xtr, m.β)
+        # update Zi' * res
+        BLAS.gemv!('N', T(-1), obs.ztx, m.β, T(1), copy!(obs.ztr, obs.zty))
+        # Zi'Zi ⊗ Zi'Zi
+        kron_axpy!(obs.ztz, obs.ztz, m.ztz2)
+        # Zi'res ⊗ Zi'res
+        kron_axpy!(obs.ztr, obs.ztr, m.ztr2)
+    end
+    m.σ²[1] = rss / ntotal
+    # LS estimate for Σ = LLt
+    LAPACK.potrf!('U', m.ztz2)
+    BLAS.trsv!('U', 'T', 'N', m.ztz2, m.ztr2)
+    BLAS.trsv!('U', 'N', 'N', m.ztz2, m.ztr2)
+    copyto!(m.Σ, m.ztr2)
+    copy!(m.L, m.Σ)
+    LAPACK.potrf!('L', m.L)
+    for j in 2:q, i in 1:j-1
+        m.L[i, j] = 0
+    end
+    m
+end
+
+"""
+    kron_axpy!(A, X, Y)
+
+Overwrite `Y` with `A ⊗ X + Y`. Same as `Y += kron(A, X)` but
+more memory efficient.
+"""
+function kron_axpy!(
+        A::AbstractVecOrMat{T},
+        X::AbstractVecOrMat{T},
+        Y::AbstractVecOrMat{T}
+        ) where T <: Real
+    m, n = size(A, 1), size(A, 2)
+    p, q = size(X, 1), size(X, 2)
+    @assert size(Y, 1) == m * p
+    @assert size(Y, 2) == n * q
+    @inbounds for j in 1:n
+        coffset = (j - 1) * q
+        for i in 1:m
+            a = A[i, j]
+            roffset = (i - 1) * p            
+            for l in 1:q
+                r = roffset + 1
+                c = coffset + l
+                for k in 1:p                
+                    Y[r, c] += a * X[k, l]
+                    r += 1
+                end
+            end
+        end
+    end
+    Y
+end
+```
+
+```{julia}
+init_ls!(lmm)
+@show lmm.β
+@show lmm.Σ
+@show lmm.L
+@show lmm.σ²
+```
+
+## Q8. Estimation by EM
+
+We write a function `fit!` that implements the EM algorithm for estimating LMM.
+
+```{julia}
+"""
+    fit!(m::LmmModel)
+
+Fit an `LmmModel` object by MLE using a EM algorithm. Start point 
+should be provided in `m.β`, `m.σ²`, `m.L`.
+"""
+function fit!(
+        m       :: LmmModel;
+        maxiter :: Integer       = 10_000,
+        ftolrel :: AbstractFloat = 1e-12,
+        prtfreq :: Integer       = 0
+    )
+    obj = update_em!(m, true)
+    for iter in 0:maxiter
+        obj_old = obj
+        # EM update
+        obj = update_em!(m, false)
+        # print obj
+        prtfreq > 0 && rem(iter, prtfreq) == 0 && println("iter=$iter, obj=$obj")
+        # check monotonicity
+        obj < obj_old && (@warn "monotoniciy violated")
+        # check convergence criterion
+        (obj - obj_old) < ftolrel * (abs(obj_old) + 1) && break
+        # warning about non-convergence
+        iter == maxiter && (@warn "maximum iterations reached")
+    end
+    m
+end
+```
+
+## Q9. (20 pts) Test drive
+
+Now we can run our EM algorithm to compute the MLE.
+
+```{julia}
+# initialize from least squares
+init_ls!(lmm)
+
+@time fit!(lmm, prtfreq = 1);
+
+println("objective value at solution: ", update_em!(lmm)); println()
+println("solution values:")
+@show lmm.β
+@show lmm.σ²
+@show lmm.L * transpose(lmm.L)
+```
+
+### Correctness
+
+You get 10 points if the following code does not throw `AssertError`.
+
+```{julia}
+# objective at solution should be close enough to the optimal
+@assert update_em!(lmm) > -2.840059e6
+```
+
+### Efficiency
+
+My median run time 5ms. You get 10 points if your median run time is within 1s.
+
+```{julia}
+bm_em = @benchmark fit!($lmm) setup = (init_ls!(lmm))
+```
+
+```{julia}
+# this is the points you get
+clamp(1 / (median(bm_em).time / 1e9) * 10, 0, 10)
+```
+
+## Q10. (10 pts) EM vs Newton type algorithms
+
+Contrast EM algorithm to the Newton type algorithms (gradient free, gradient based, using Hessian) in HW6, in terms of the stability, convergence rate (how fast the algorithm is converging),  final objective value, total run time, derivation, and implementation efforts. 
