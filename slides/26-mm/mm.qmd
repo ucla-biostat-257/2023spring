@@ -26,10 +26,9 @@ jupyter:
     name: julia-1.9
 ---
 
-<img src="https://people.healthsciences.ucla.edu/institution/photo?personnel%5Fid=45702" width="200" align="center"/>
+<img src="lange_pic.jpeg" width="200" align="center"/>
 
-<img src="https://epubs.siam.org/na101/home/literatum/publisher/siam/books/content/ot/2016/1.9781611974409/1.9781611974409/20160713/1.9781611974409.cover.jpg" width="200" align="center"/>
-
+<img src="mm_book_cover.jpg" width="200" align="center"/>
 
 ## MM algorithm
 
@@ -282,3 +281,4 @@ $$
 * "Golub-Kahan-Reinsch" algorithm takes $4m^2n + 8mn^2 + 9n^3$ flops for an $m \ge n$ matrix and is **not** going to work for 480K-by-18K Netflix matrix.
 
 * Notice only top singular values are needed since low rank solutions are achieved by large $\lambda$. Lanczos/Arnoldi algorithm is the way to go. Matrix-vector multiplication $\mathbf{Z}^{(t)} \mathbf{v}$ is fast (why?)
+
