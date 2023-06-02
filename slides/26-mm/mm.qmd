@@ -106,7 +106,7 @@ $$
 * Generic methods for majorization and minorization - **inequalities**
     * Jensen's (information) inequality - EM algorithms
     * Supporting hyperplane property of a convex function
-    * The Cauchy-Schwartz inequality - multidimensional scaling
+    * The Cauchy-Schwarz inequality - multidimensional scaling
     * Arithmetic-geometric mean inequality
     * Quadratic upper bound principle - Bohning and Lindsay
     * ...
@@ -281,4 +281,3 @@ $$
 * "Golub-Kahan-Reinsch" algorithm takes $4m^2n + 8mn^2 + 9n^3$ flops for an $m \ge n$ matrix and is **not** going to work for 480K-by-18K Netflix matrix.
 
 * Notice only top singular values are needed since low rank solutions are achieved by large $\lambda$. Lanczos/Arnoldi algorithm is the way to go. Matrix-vector multiplication $\mathbf{Z}^{(t)} \mathbf{v}$ is fast (why?)
-
