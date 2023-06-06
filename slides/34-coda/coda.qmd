@@ -1,0 +1,72 @@
+---
+title: Take-Home Messages
+subtitle: Biostat/Biomath M257
+author: Dr. Hua Zhou @ UCLA
+date: today
+format:
+  html:
+    theme: cosmo
+    embed-resources: true
+    number-sections: true
+    toc: true
+    toc-depth: 4
+    toc-location: left
+    code-fold: false
+jupyter:
+  jupytext:
+    formats: 'ipynb,qmd'
+    text_representation:
+      extension: .qmd
+      format_name: quarto
+      format_version: '1.0'
+      jupytext_version: 1.14.5
+  kernelspec:
+    display_name: Julia 1.9.0
+    language: julia
+    name: julia-1.9
+---
+
+* Back to [learning objectives](https://ucla-biostat-257.github.io/2023spring/slides/01-intro/intro.html#learning-objectives).
+
+* Ultimate goal of statistics is **data analysis**. E.g., PageRank, handwritten digit recognization, Netflix matrix completion, NNMF, ...  
+
+    > Statistics is partly empirical and partly mathematical. It is now almost **entirely** computational.  
+    > Kenneth Lange
+
+| Statisticians used to .. | Now we spend all time ...  |
+|----------------------------------|------------------------------------|
+| <img src="./man_doing_math.gif" style="width: 200px;"/> | <img src="./man_working_on_computer.jpg" style="width: 200px;"/> |
+
+
+* Two essential skills for modern statisticians: **programming** and computational **algorithms**.
+
+    > Data Scientist (n.): Person who is better at statistics than any software engineer and better at software engineering than any statistician.  
+    > Josh Willis on Twitter
+
+* **Numerical linear algebra**
+    * building blocks of most computing we do. 
+    * Use standard (and good) libraries (BLAS, LAPACK, ...) as much as possible!  
+    * Sparse linear algebra and iterative solvers such as conjugate gradient (CG) methods are critical for exploiting structure in big data.
+    
+* **Optimization**
+
+    * Convex programming (LS, LP, QP, GP, SOCP, SDP). Download and study Stephen Boyd's book, watch [lecture videos by Stephen Boyd](https://www.youtube.com/watch?v=McLq1hEq3UY) or take UCLA EE236B, EE236C by Vandenberghe, familiarize yourself with the **good** optimization softwares. Convex programming is becoming a **technology**, just like least squares (LS). Browse the documentation of `cvx` and `Convex.jl` to see which functions are implemented.
+
+    * Generic nonlinear optimization tools: Newton, Gauss-Newton, quasi-Newton, (nonlinear) conjugate gradient, ...
+
+    * Optimization tools developed by statisticians: Fisher scoring, EM, MM, ... Take UCLA Biomath 205 by Kenneth Lange for a thorough study of MM algorithms.
+
+<img src="./optimization_flowchart.png" width="600" align="center"/>
+
+* About coding:  
+
+    * [5 Pro-Tips For Data Scientistis To Write Good Code](https://towardsdatascience.com/5-pro-tips-for-data-scientists-to-write-good-code-1fecef64ba09).  
+    
+    * **Perseverance and mentality**. It's always YOU! Not computer, not software, not Windows, not roundoff error, ... We tend to blame everything else except ourselves and give up. For example, when implementing Newton typle algorithms, wrong derivative and/or Hessian calculation is the #1 source of problems. When implementing EM/MM algorithms, non-monotonicity always means bugs in our code or derivation. Bring the **homework mentality** into research. 
+    
+    * Keeping updating a (computational) note along with code. 
+
+* Enjoy (or hate) Julia?  
+JuliaCon 2023: http://juliacon.org/2023/
+
+YouTube: <https://www.youtube.com/watch?v=U41e7hKAAPQ&t=3073s>
