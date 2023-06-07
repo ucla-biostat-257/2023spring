@@ -579,6 +579,13 @@ function fit!(
 end
 
 """
+    ◺(n::Integer)
+
+Triangular number `n * (n + 1) / 2`.
+"""
+@inline ◺(n::Integer) = (n * (n + 1)) >> 1
+
+"""
     modelpar_to_optimpar!(par, m)
 
 Translate model parameters in `m` to optimization variables in `par`.
@@ -908,7 +915,7 @@ library(lme4)
 library(readr)
 library(magrittr)
 
-testdata <- read_csv("lmm_data.txt")
+testdata <- read_csv("lmm_data.csv")
 """
 ```
 
@@ -931,9 +938,8 @@ loglike[2] = @rget rlogl;
 
 ### MixedModels.jl
 
-
 ```{julia}
-testdata = CSV.File("lmm_data.txt", types = Dict(1=>String)) |> DataFrame!
+testdata = CSV.File("lmm_data.csv", types = Dict(1=>String)) |> DataFrame!
 ```
 
 ```{julia}
